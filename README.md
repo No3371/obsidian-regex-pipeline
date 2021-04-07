@@ -1,56 +1,61 @@
-## Obsidian Sample Plugin
+## Regex Pipeline
 
-This is a sample plugin for Obsidian (https://obsidian.md).
+Regex Pipeline is a [obsidian](https://obsidian.md/) plugin that allows users setup custom regex rules to automatically format notes, this is especially useful in scenerios like building personal knowledge database.
 
-This project uses Typescript to provide type checking and documentation.
-The repo depends on the latest plugin API (obsidian.d.ts) in Typescript Definition format, which contains TSDoc comments describing what it does.
+![](https://i.imgur.com/kdEfCtN.gif)
 
-**Note:** The Obsidian API is still in early alpha and is subject to change at any time!
+![](https://i.imgur.com/NOVYGTh.gif)
 
-This sample plugin demonstrates some of the basic functionality the plugin API can do.
-- Changes the default font color to red using `styles.css`.
-- Adds a ribbon icon, which shows a Notice when clicked.
-- Adds a command "Open Sample Modal" which opens a Modal.
-- Adds a plugin setting tab to the settings page.
-- Registers a global click event and output 'click' to the console.
-- Registers a global interval which logs 'setInterval' to the console.
+## Usage
+First of all, enable the plugin, a file named index.txt should be created at `.obsidian/regex-rulesets/`. Due to how obsidian protects your disks, you have to specified what ruleset files are there to be read, that's why we need a index file.
 
-### First time developing plugins?
+#### Writing Rulesets
+Now you can start editing your own rule sets.
+A ruleset contains one or more rule, the format looks like:
+```
+"SEARCH"->"REPLACE"
+```
+By default, `gm` (multiline) flag is appended to the search regex, you can overwrite this by providing your own flags, for example, use `gmu` flag in this way:
+```
+"SEARCH"gmu->"REAPLCE"
+```
 
-Quick starting guide for new plugin devs:
+Noted that `gm` flags are bascially neccessary for this plugin to be useful, you seldom wants to only replace only 1 occurances or operate on a single line notes.
 
-- Make a copy of this repo as a template with the "Use this template" button (login to GitHub if you don't see it).
-- Clone your repo to a local development folder. For convenience, you can place this folder in your `.obsidian/plugins/your-plugin-name` folder.
-- Install NodeJS, then run `npm i` in the command line under your repo folder.
-- Run `npm run dev` to compile your plugin from `main.ts` to `main.js`.
-- Make changes to `main.ts` (or create new `.ts` files). Those changes should be automatically compiled into `main.js`.
-- Reload Obsidian to load the new version of your plugin.
-- Enable plugin in settings window.
+Rules are executed in order.
 
-### Releasing new releases
+#### Indexing
+Rulesets must be saved in `.obsidian/regex-rulesets/`.
 
-- Update your `manifest.json` with your new version number, such as `1.0.1`, and the minimum Obsidian version required for your latest release.
-- Update your `versions.json` file with `"new-plugin-version": "minimum-obsidian-version"` so older versions of Obsidian can download an older version of your plugin that's compatible.
-- Create new GitHub release using your new version number as the "Tag version". Use the exact version number, don't include a prefix `v`. See here for an example: https://github.com/obsidianmd/obsidian-sample-plugin/releases
-- Upload the files `manifest.json`, `main.js`, `styles.css` as binary attachments.
-- Publish the release.
+After you saved your ruleset, you have to add the filename into the `index.txt`, one file per line.
 
-### Adding your plugin to the community plugin list
+#### Applying Rulesets
+Press the sidebar button of this plugin to show the rulesets menu, select your ruleset then it'll apply.
 
-- Publish an initial version.
-- Make sure you have a `README.md` file in the root of your repo.
-- Make a pull request at https://github.com/obsidianmd/obsidian-releases to add your plugin.
+## Examples
+**NumberToAlphabet**
+```
+"1"->"A"
+"2"->"B"
+"3"->"C"
+"4"->"D"
+"5"->"E"
+"6"->"F"
+"7"->"G"
+"8"->"H"
+"9"->"I"
+```
+**[Goo 辞書 Formatter](dictionary.goo.ne.jp/word/彷徨く/)**
+```
+"^#\s.+goo国語辞書\n+(.+)\n+の解説\n+\-+(\r\n|\r|\n)"->"# $1$2"
+"^類語"->"#### 類語"
+"^関連語"->"#### 関連語"
+```
 
-### How to use
 
-- Clone this repo.
-- `npm i` or `yarn` to install dependencies
-- `npm run dev` to start compilation in watch mode.
-
-### Manually installing the plugin
-
-- Copy over `main.js`, `styles.css`, `manifest.json` to your vault `VaultFolder/.obsidian/plugins/your-plugin-id/`.
-
-### API Documentation
-
-See https://github.com/obsidianmd/obsidian-api
+## Tips
+If you want to use characters like `\n` in replacement string you can try to capture it first then use it in replacements. Example:
+```
+"^.+(\r\n|\r|\n)"`->"$1$1$1"
+```
+This rule create 3 new lines at the end of the line.

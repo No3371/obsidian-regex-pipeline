@@ -74,9 +74,12 @@ export default class RegexPipeline extends Plugin {
 	}
 	
 	async reloadRulesets() {
+		if (!this.app.vault.adapter.exists(".obsidian/regex-rulesets/index.txt"))
+			await this.app.vault.adapter.write(".obsidian/regex-rulesets/index.txt", "");
 		let p = this.app.vault.adapter.read(".obsidian/regex-rulesets/index.txt");
 		p.then(s => {
-			this.rules = s.split('\n')
+			this.rules = s.split(/\r\n|\r|\n/);
+			this.rules = this.rules.filter((v) => v.length > 0);
 			this.log(this.rules);
 		})
 	}
@@ -113,7 +116,7 @@ export default class RegexPipeline extends Plugin {
 			if (ruleMatches == null) break;
 			this.log(ruleMatches);
 
-			let matchRule = ruleMatches[2].length == 0? new RegExp(ruleMatches[1], 'm') : new RegExp(ruleMatches[1], ruleMatches[2]);
+			let matchRule = ruleMatches[2].length == 0? new RegExp(ruleMatches[1], 'gm') : new RegExp(ruleMatches[1], ruleMatches[2]);
 			subject = subject.replace(matchRule, ruleMatches[3]);
 			count++;
 		}
