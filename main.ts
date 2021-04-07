@@ -1,5 +1,5 @@
 import * as fs from 'fs'
-import { App, ButtonComponent, Component, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, TFile, Vault } from 'obsidian';
+import { App, ButtonComponent, Component, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, TextComponent, TFile, Vault } from 'obsidian';
 import * as path from 'path';
 
 interface MyPluginSettings {
@@ -10,12 +10,18 @@ const DEFAULT_SETTINGS: MyPluginSettings = {
 	mySetting: 'default'
 }
 
-export default class MyPlugin extends Plugin {
+export default class RegexPipeline extends Plugin {
 	settings: MyPluginSettings;
 	rules: string[]
 
+	log (message?: any, ...optionalParams: any[])
+	{
+		// comment this to disable logging
+		console.log("[regex-pipeline] " + message);
+	}
+
 	async onload() {
-		console.log('loading plugin');
+		this.log('loading plugin');
 
 		await this.loadSettings();
 
@@ -29,7 +35,7 @@ export default class MyPlugin extends Plugin {
 			id: 'apply-ruleset',
 			name: 'Apply Ruleset',
 			// callback: () => {
-			// 	console.log('Simple Callback');
+			// 	this.log('Simple Callback');
 			// },
 			checkCallback: (checking: boolean) => {
 				let leaf = this.app.workspace.activeLeaf;
@@ -43,8 +49,6 @@ export default class MyPlugin extends Plugin {
 			}
 		});
 
-		this.addSettingTab(new SettingTab(this.app, this));
-
 		this.registerCodeMirror((cm: CodeMirror.Editor) => {
 			console.log('codemirror', cm);
 		});
@@ -57,11 +61,11 @@ export default class MyPlugin extends Plugin {
 	}
 
 	onunload() {
-		console.log('unloading plugin');
+		this.log('unloading');
 	}
 
 	async loadSettings() {
-		this.getRulesets(this.app.vault.configDir + "/regex-pipleline-rules/");
+		this.reloadRulesets();
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
 	}
 
@@ -69,87 +73,90 @@ export default class MyPlugin extends Plugin {
 		await this.saveData(this.settings);
 	}
 	
-	async getRulesets(rulesetFolder : string) {
-		fs.readdir(path.resolve(rulesetFolder), (err, files) => {
-			this.rules = files;
-		});
+	async reloadRulesets() {
+		let p = this.app.vault.adapter.read(".obsidian/regex-rulesets/index.txt");
+		p.then(s => {
+			this.rules = s.split('\n')
+			this.log(this.rules);
+		})
 	}
 
-	applyRuleset (ruleset : string) {
-		let lineParser = /^"(.+)"\s?"(.+)"\n$/;
-		let ruleMatches = lineParser.exec(fs.readFileSync(ruleset).toString())
-		if (ruleMatches == null) return;
-		let activeMarkdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
-		if (activeMarkdownView == null) return;
+	async applyRuleset (ruleset : string) {
+		this.log("applyRuleset: " + ruleset);
+		let ruleParser = /^"(.+)"([a-z]?)->"(.+)"\n?$/gmu;		
+		let ruleText = await this.app.vault.adapter.read(ruleset);
+		this.log(ruleText);
 
-		console.log(ruleMatches);
-		let matchRule = new RegExp(ruleMatches[1]);
+		let activeMarkdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
+		if (activeMarkdownView == null)
+		{
+			new Notice("No active Markdown file!");
+			return;
+		}
+
+		let subject;
+		let selectionMode;
 		if (activeMarkdownView.editor.somethingSelected())
 		{
-			let newSelection = activeMarkdownView.editor.getSelection().replace(matchRule, ruleMatches[2]);
-			activeMarkdownView.editor.replaceSelection(newSelection)
+			subject = activeMarkdownView.editor.getSelection();
+			selectionMode = true;
 		}
 		else
 		{
-			let newFullNote = activeMarkdownView.data.replace(matchRule, ruleMatches[2]);
+			subject = activeMarkdownView.editor.getValue();
 		}
 
+		let count = 0;
+		let ruleMatches;
+		while (ruleMatches = ruleParser.exec(ruleText))
+		{
+			if (ruleMatches == null) break;
+			this.log(ruleMatches);
+
+			let matchRule = ruleMatches[2].length == 0? new RegExp(ruleMatches[1], 'm') : new RegExp(ruleMatches[1], ruleMatches[2]);
+			subject = subject.replace(matchRule, ruleMatches[3]);
+			count++;
+		}
+		if (selectionMode)
+			activeMarkdownView.editor.replaceSelection(subject);
+		else 
+			activeMarkdownView.editor.setValue(subject);
+
 		activeMarkdownView.requestSave();
+		new Notice("Applied " + count + " regex replacements!");
+		
 	}
 }
 
 class ApplyRuleSetMenu extends Modal {
-	plugin: MyPlugin;
-	constructor(app: App, plugin: MyPlugin) {
+	plugin: RegexPipeline;
+	constructor(app: App, plugin: RegexPipeline) {
 		super(app);
 		this.plugin = plugin;
 	}
 
 	onOpen() {
 		let {contentEl} = this;
-		contentEl.setText('Rules are located at .obsidian/regex-pipeline-rulesets');
+		contentEl.setText('.obsidian/regex-rulesets/...');
+		new ButtonComponent(contentEl)
+			.setButtonText("RELOAD")
+			.onClick(async (evt) => {
+				this.plugin.reloadRulesets();
+				new ApplyRuleSetMenu(this.app, this.plugin).open();
+				this.close();
+			});
 		for (let i = 0; i < this.plugin.rules.length; i++)
 		{
 			new Setting(contentEl)
 				.setName(this.plugin.rules[i])
 				.addButton(btn => btn.onClick(async () => {
-					this.plugin.applyRuleset(this.plugin.rules[i])
-				}))
+					this.plugin.applyRuleset(".obsidian/regex-rulesets/" + this.plugin.rules[i])
+				}).setButtonText("Apply"));
 		}
 	}
 
 	onClose() {
 		let {contentEl} = this;
 		contentEl.empty();
-	}
-}
-
-
-class SettingTab extends PluginSettingTab {
-	plugin: MyPlugin;
-
-	constructor(app: App, plugin: MyPlugin) {
-		super(app, plugin);
-		this.plugin = plugin;
-	}
-
-	display(): void {
-		let {containerEl} = this;
-
-		containerEl.empty();
-
-		containerEl.createEl('h2', {text: 'Settings for my awesome plugin.'});
-
-		new Setting(containerEl)
-			.setName('Setting #1')
-			.setDesc('It\'s not a secret')
-			.addText(text => text
-				.setPlaceholder('Enter your secret')
-				.setValue('')
-				.onChange(async (value) => {
-					console.log('Secret: ' + value);
-					this.plugin.settings.mySetting = value;
-					await this.plugin.saveSettings();
-				}));
 	}
 }
