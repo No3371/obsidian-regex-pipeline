@@ -2,9 +2,7 @@
 
 Regex Pipeline is a [obsidian](https://obsidian.md/) plugin that allows users setup custom regex rules to automatically format notes, this is especially useful in scenerios like building personal knowledge database.
 
-![](https://i.imgur.com/kdEfCtN.gif)
-
-![](https://i.imgur.com/NOVYGTh.gif)
+![](https://i.imgur.com/KxLwG89.gif)
 
 ## Usage
 First of all, enable the plugin, a file named index.txt should be created at `.obsidian/regex-rulesets/`. Due to how obsidian protects your disks, you have to specified what ruleset files are there to be read, that's why we need a index file.
@@ -15,17 +13,31 @@ A ruleset contains one or more rule, the format looks like:
 ```
 "SEARCH"->"REPLACE"
 ```
-By default, `gm` (multiline) flag is appended to the search regex, you can overwrite this by providing your own flags, for example, use `gmu` flag in this way:
+
+#### Multi-line replacement string:
 ```
-"SEARCH"gmu->"REAPLCE"
+"SEARCH"->"REP
+LACE"
+```
+
+#### Regex Flags
+By default, `gm` (multiline) flag is appended to the **SEARCH** regex, you can overwrite this by providing your own flags, for example, use `gmu` flag in this way:
+```
+"SEARCH"gmu->"REPLACE"
 ```
 
 Noted that `gm` flags are bascially neccessary for this plugin to be useful, you seldom wants to only replace only 1 occurances or operate on a single line notes.
 
-Rules are executed in order.
+#### Replace With Nothing
+Due to how the plugin parse rules, the replacement string can not be a length zero string, if you want to delete with regex (replace with ""), you have to add a custom `x` flag:
+```
+"SEARCH"->"REPLACE"x
+```
+In this case, whatever REPLACE is, the plugin treat it as "".
+
 
 #### Indexing
-Rulesets must be saved in `.obsidian/regex-rulesets/`.
+Rulesets must be saved in `.obsidian/regex-rulesets/`
 
 After you saved your ruleset, you have to add the filename into the `index.txt`, one file per line.
 
@@ -45,11 +57,47 @@ Press the sidebar button of this plugin to show the rulesets menu, select your r
 "8"->"H"
 "9"->"I"
 ```
-**[Goo 辞書 Formatter](dictionary.goo.ne.jp/word/彷徨く/)**
+**[Goo 辞書 Formatter](dictionary.goo.ne.jp/word/彷徨く/)** (Gif above)
 ```
-"^#\s.+goo国語辞書\n+(.+)\n+の解説\n+\-+(\r\n|\r|\n)"->"# $1$2"
+::This extract entry name from the title
+"^#\s.+goo国語辞書\n+(.+)\n+の解説\n+\-+"->"# $1"
+:: This convert these lines to headers
 "^類語"->"#### 類語"
 "^関連語"->"#### 関連語"
+"    [\n\s]?    1\.\s+"->"    >"
+:: This fix wrong bullets captured by [MardDownload](github.com/deathau/markdownload)
+"^1.  \*\*１\*\*"->"1. "
+"^1.  \*\*２\*\*"->"2. "
+"^1.  \*\*３\*\*"->"3. "
+"^1.  \*\*４\*\*"->"4. "
+"^1.  \*\*５\*\*"->"5. "
+"^1.  \*\*６\*\*"->"6. "
+"^1.  \*\*７\*\*"->"7. "
+"^1.  \*\*８\*\*"->"8. "
+"^1.  \*\*９\*\*"->"9. "
+"^1.  \*\*１０\*\*"->"10. "
+"^1.  \*\*１１\*\*"->"11. "
+"^1.  \*\*１２\*\*"->"12. "
+"^1.  \*\*１３\*\*"->"13. "
+"^1.  \*\*１４\*\*"->"14. "
+"^1.  \*\*１５\*\*"->"15. "
+"^1.  \*\*１６\*\*"->"16. "
+"^1.  \*\*１７\*\*"->"17. "
+"^1.  \*\*１８\*\*"->"18. "
+"^1.  \*\*１９\*\*"->"19. "
+"^1.  \*\*２０\*\*"->"20. "
+"^1.  \*\*２１\*\*"->"21. "
+"^1.  \*\*２２\*\*"->"22. "
+"^1.  \*\*２３\*\*"->"23. "
+"^1.  \*\*２４\*\*"->"24. "
+"^1.  \*\*２５\*\*"->"25. "
+"^1.  \*\*２６\*\*"->"26. "
+"^1.  \*\*２７\*\*"->"27. "
+"^1.  \*\*２８\*\*"->"28. "
+"^1.  \*\*２９\*\*"->"29. "
+"^1.  \*\*３０\*\*"->"30. "
+::This clears empty lines.
+"^\s+\n(\d+)\."->"$1."
 ```
 
 

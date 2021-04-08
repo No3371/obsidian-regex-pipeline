@@ -84,9 +84,8 @@ export default class RegexPipeline extends Plugin {
 
 	async applyRuleset (ruleset : string) {
 		this.log("applyRuleset: " + ruleset);
-		let ruleParser = /^"(.+)"([a-z]?)->"(.+)"\n?$/gmu;		
+		let ruleParser = /^"(.+?)"([a-z]?)->"(.+?)"([a-z]?)\n?$/gmus;		
 		let ruleText = await this.app.vault.adapter.read(ruleset);
-		this.log(ruleText);
 
 		let activeMarkdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
 		if (activeMarkdownView == null)
@@ -112,10 +111,11 @@ export default class RegexPipeline extends Plugin {
 		while (ruleMatches = ruleParser.exec(ruleText))
 		{
 			if (ruleMatches == null) break;
-			this.log(ruleMatches);
+			this.log("\n" + ruleMatches[1] + "\n↓↓↓↓↓\n"+ ruleMatches[3]);
 
 			let matchRule = ruleMatches[2].length == 0? new RegExp(ruleMatches[1], 'gm') : new RegExp(ruleMatches[1], ruleMatches[2]);
-			subject = subject.replace(matchRule, ruleMatches[3]);
+			if (ruleMatches[4] == 'x') subject = subject.replace(matchRule, '');
+			else subject = subject.replace(matchRule, ruleMatches[3]);
 			count++;
 		}
 		if (selectionMode)
