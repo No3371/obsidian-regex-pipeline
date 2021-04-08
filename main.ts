@@ -1,6 +1,4 @@
-import * as fs from 'fs'
-import { App, ButtonComponent, Component, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, TextComponent, TFile, Vault } from 'obsidian';
-import * as path from 'path';
+import { App, BaseComponent, ButtonComponent, Component, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, TextComponent, TFile, Vault } from 'obsidian';
 
 interface MyPluginSettings {
 	mySetting: string;
@@ -140,14 +138,10 @@ class ApplyRuleSetMenu extends Modal {
 
 	onOpen() {
 		let {contentEl} = this;
-		contentEl.setText('.obsidian/regex-rulesets/...');
-		new ButtonComponent(contentEl)
-			.setButtonText("RELOAD")
-			.onClick(async (evt) => {
-				this.plugin.reloadRulesets();
-				new ApplyRuleSetMenu(this.app, this.plugin).open();
-				this.close();
-			});
+		contentEl.append(contentEl.createEl("h1", null, el => el.innerHTML = ".obsidian/regex-rulesets/..."));
+		// let p = new HTMLParagraphElement()
+		// p.innerHTML = '.obsidian/regex-rulesets/...';
+		// contentEl.appendChild(p);
 		for (let i = 0; i < this.plugin.rules.length; i++)
 		{
 			new Setting(contentEl)
@@ -156,6 +150,14 @@ class ApplyRuleSetMenu extends Modal {
 					this.plugin.applyRuleset(".obsidian/regex-rulesets/" + this.plugin.rules[i])
 				}).setButtonText("Apply"));
 		}
+		new ButtonComponent(contentEl)
+			.setButtonText("RELOAD")
+			.onClick(async (evt) => {
+				this.plugin.reloadRulesets();
+				new ApplyRuleSetMenu(this.app, this.plugin).open();
+				this.close();
+			})
+			.buttonEl.style.setProperty("margin", "auto");
 	}
 
 	onClose() {
