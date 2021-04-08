@@ -1,9 +1,9 @@
 {
-	"id": "regex-pipeline",
+	"id": "obsidian-regex-pipeline",
 	"name": "Regex Pipeline",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"minAppVersion": "0.9.12",
-	"description": "Run predefined regex replacement to notes.",
+	"description": "Allows users setup custom regex rules to automatically format notes",
 	"author": "No3371",
 	"authorUrl": "github.com/No3371",
 	"isDesktopOnly": false

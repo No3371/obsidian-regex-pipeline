@@ -45,7 +45,14 @@ After you saved your ruleset, you have to add the filename into the `index.txt`,
 Press the sidebar button of this plugin to show the rulesets menu, select your ruleset then it'll apply.
 
 ## Examples
+**Index.txt**
+```
+number-to-alphabet.txt
+goo
+```
+
 **NumberToAlphabet**
+.obsidian/regex-rulesets/number-to-alphabet.txt
 ```
 "1"->"A"
 "2"->"B"
@@ -58,6 +65,7 @@ Press the sidebar button of this plugin to show the rulesets menu, select your r
 "9"->"I"
 ```
 **[Goo 辞書 Formatter](dictionary.goo.ne.jp/word/彷徨く/)** (Gif above)
+.obsidian/regex-rulesets/goo
 ```
 ::This extract entry name from the title
 "^#\s.+goo国語辞書\n+(.+)\n+の解説\n+\-+"->"# $1"
@@ -99,11 +107,3 @@ Press the sidebar button of this plugin to show the rulesets menu, select your r
 ::This clears empty lines.
 "^\s+\n(\d+)\."->"$1."
 ```
-
-
-## Tips
-If you want to use characters like `\n` in replacement string you can try to capture it first then use it in replacements. Example:
-```
-"^.+(\r\n|\r|\n)"`->"$1$1$1"
-```
-This rule create 3 new lines at the end of the line.
