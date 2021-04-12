@@ -35,6 +35,10 @@ export default class RegexPipeline extends Plugin {
 				return false;
 			}
 		});
+
+		this.reloadRulesets();
+		this.log("Rulesets: " + this.pathToRulesets);
+		this.log("Index: " + this.pathToIndex);
 	}
 
 	onunload() {
