@@ -1,33 +1,22 @@
 import { App, BaseComponent, ButtonComponent, Component, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, TextComponent, TFile, Vault } from 'obsidian';
 
-interface MyPluginSettings {
-	mySetting: string;
-}
-
-const DEFAULT_SETTINGS: MyPluginSettings = {
-	mySetting: 'default'
-}
-
 export default class RegexPipeline extends Plugin {
-	settings: MyPluginSettings;
 	rules: string[]
+	pathToRulesets = this.app.vault.configDir + "/regex-rulesets/";
+	pathToIndex = this.app.vault.configDir + "/regex-rulesets/index.txt"
 
 	log (message?: any, ...optionalParams: any[])
 	{
 		// comment this to disable logging
-		console.log("[regex-pipeline] " + message);
+		// console.log("[regex-pipeline] " + message);
 	}
 
 	async onload() {
-		this.log('loading plugin');
-
-		await this.loadSettings();
+		this.log('loading');
 
 		this.addRibbonIcon('dice', 'Regex Rulesets', () => {
 			new ApplyRuleSetMenu(this.app, this).open();
 		});
-
-		this.addStatusBarItem().setText('Status Bar Text');
 
 		this.addCommand({
 			id: 'apply-ruleset',
@@ -46,35 +35,16 @@ export default class RegexPipeline extends Plugin {
 				return false;
 			}
 		});
-
-		this.registerCodeMirror((cm: CodeMirror.Editor) => {
-			console.log('codemirror', cm);
-		});
-
-		this.registerDomEvent(document, 'click', (evt: MouseEvent) => {
-			console.log('click', evt);
-		});
-
-		this.registerInterval(window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000));
 	}
 
 	onunload() {
 		this.log('unloading');
 	}
-
-	async loadSettings() {
-		this.reloadRulesets();
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
-	}
-
-	async saveSettings() {
-		await this.saveData(this.settings);
-	}
 	
 	async reloadRulesets() {
-		if (!this.app.vault.adapter.exists(".obsidian/regex-rulesets/index.txt"))
-			await this.app.vault.adapter.write(".obsidian/regex-rulesets/index.txt", "");
-		let p = this.app.vault.adapter.read(".obsidian/regex-rulesets/index.txt");
+		if (!this.app.vault.adapter.exists(this.pathToIndex))
+			await this.app.vault.adapter.write(this.pathToIndex, "");
+		let p = this.app.vault.adapter.read(this.pathToIndex);
 		p.then(s => {
 			this.rules = s.split(/\r\n|\r|\n/);
 			this.rules = this.rules.filter((v) => v.length > 0);
@@ -138,24 +108,21 @@ class ApplyRuleSetMenu extends Modal {
 
 	onOpen() {
 		let {contentEl} = this;
-		contentEl.append(contentEl.createEl("h1", null, el => el.innerHTML = ".obsidian/regex-rulesets/..."));
-		// let p = new HTMLParagraphElement()
-		// p.innerHTML = '.obsidian/regex-rulesets/...';
-		// contentEl.appendChild(p);
+		contentEl.append(contentEl.createEl("h1", null, el => el.innerHTML = this.plugin.pathToRulesets + "..."));
 		for (let i = 0; i < this.plugin.rules.length; i++)
 		{
 			new Setting(contentEl)
 				.setName(this.plugin.rules[i])
 				.addButton(btn => btn.onClick(async () => {
-					this.plugin.applyRuleset(".obsidian/regex-rulesets/" + this.plugin.rules[i])
+					this.plugin.applyRuleset(this.plugin.pathToRulesets + this.plugin.rules[i])
 				}).setButtonText("Apply"));
 		}
 		new ButtonComponent(contentEl)
 			.setButtonText("RELOAD")
 			.onClick(async (evt) => {
 				this.plugin.reloadRulesets();
-				new ApplyRuleSetMenu(this.app, this.plugin).open();
-				this.close();
+				this.onClose();
+				this.onOpen();
 			})
 			.buttonEl.style.setProperty("margin", "auto");
 	}
