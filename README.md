@@ -66,13 +66,26 @@ goo
 ```
 **[Goo 辞書 Formatter](dictionary.goo.ne.jp/word/彷徨く/)** (Gif above)
 .obsidian/regex-rulesets/goo
-```
+```"\!\[\]\(https://dictionary\.goo\.ne\.jp/img/daijisen/gaiji/02539\.gif\)"->"![[@1.gif]]"
+"\!\[\]\(https://dictionary\.goo\.ne\.jp/img/daijisen/gaiji/02540\.gif\)"->"![[@2.gif]]"
+"\!\[\]\(https://dictionary\.goo\.ne\.jp/img/daijisen/gaiji/02541\.gif\)"->"![[@3.gif]]"
+"\!\[\]\(https://dictionary\.goo\.ne\.jp/img/daijisen/gaiji/02542\.gif\)"->"![[@4.gif]]"
+"\!\[\]\(https://dictionary\.goo\.ne\.jp/img/daijisen/gaiji/02543\.gif\)"->"![[@5.gif]]"
+"\!\[\]\(https://dictionary\.goo\.ne\.jp/img/daijisen/gaiji/02544\.gif\)"->"![[@6.gif]]"
+"［(.+?)］(.+)\n\n1\.  1\.  「"->"［$1］$2
+>「"
 ::This extract entry name from the title
 "^#\s.+goo国語辞書\n+(.+)\n+の解説\n+\-+"->"# $1"
+::This extract titles for sub entries
+"(.+?)\n\nの解説\n+?\-+"->"---
+# $1"
 :: This convert these lines to headers
 "^類語"->"#### 類語"
 "^関連語"->"#### 関連語"
+"^下接句"->"#### 下接句"
 "    [\n\s]?    1\.\s+"->"    >"
+:: This fix arrow reference
+"    >→\[(.+?)\]\((.+)\)［(.+?)］"->"    →[$1]($2)［$3］"
 :: This fix wrong bullets captured by [MardDownload](github.com/deathau/markdownload)
 "^1.  \*\*１\*\*"->"1. "
 "^1.  \*\*２\*\*"->"2. "
@@ -106,4 +119,6 @@ goo
 "^1.  \*\*３０\*\*"->"30. "
 ::This clears empty lines.
 "^\s+\n(\d+)\."->"$1."
+"\n\n-   「"->"
+>「"
 ```
