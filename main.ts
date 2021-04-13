@@ -2,7 +2,7 @@ import { App, BaseComponent, ButtonComponent, Component, MarkdownView, Modal, No
 
 export default class RegexPipeline extends Plugin {
 	rules: string[]
-	pathToRulesets = this.app.vault.configDir + "/regex-rulesets/";
+	pathToRulesets = this.app.vault.configDir + "/regex-rulesets";
 	pathToIndex = this.app.vault.configDir + "/regex-rulesets/index.txt"
 
 	log (message?: any, ...optionalParams: any[])
@@ -46,8 +46,11 @@ export default class RegexPipeline extends Plugin {
 	}
 	
 	async reloadRulesets() {
-		if (!this.app.vault.adapter.exists(this.pathToIndex))
+		if (!await this.app.vault.adapter.exists(this.pathToRulesets))
+			await this.app.vault.createFolder(this.pathToRulesets)
+		if (!await this.app.vault.adapter.exists(this.pathToIndex))
 			await this.app.vault.adapter.write(this.pathToIndex, "");
+
 		let p = this.app.vault.adapter.read(this.pathToIndex);
 		p.then(s => {
 			this.rules = s.split(/\r\n|\r|\n/);
@@ -112,7 +115,7 @@ class ApplyRuleSetMenu extends Modal {
 
 	onOpen() {
 		let {contentEl} = this;
-		contentEl.append(contentEl.createEl("h1", null, el => el.innerHTML = this.plugin.pathToRulesets + "..."));
+		contentEl.append(contentEl.createEl("h1", null, el => el.innerHTML = this.plugin.pathToRulesets + "/..."));
 		for (let i = 0; i < this.plugin.rules.length; i++)
 		{
 			new Setting(contentEl)
