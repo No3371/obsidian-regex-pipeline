@@ -121,7 +121,7 @@ class ApplyRuleSetMenu extends Modal {
 			new Setting(contentEl)
 				.setName(this.plugin.rules[i])
 				.addButton(btn => btn.onClick(async () => {
-					this.plugin.applyRuleset(this.plugin.pathToRulesets + this.plugin.rules[i])
+					this.plugin.applyRuleset(this.plugin.pathToRulesets + "/" + this.plugin.rules[i])
 				}).setButtonText("Apply"));
 		}
 		new ButtonComponent(contentEl)
