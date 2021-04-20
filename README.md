@@ -45,6 +45,8 @@ After you saved your ruleset, you have to add the filename into the `index.txt`,
 Press the sidebar button of this plugin to show the rulesets menu, select your ruleset then it'll apply.
 The menu is a command so you can also bind it to a shortcut.
 
+**Note**: The plugin support applying rules to selection only, if anything is selected, only selection is modified!
+
 ## Examples
 **index.txt**
 .obsidian/regex-rulesets/index.txt
