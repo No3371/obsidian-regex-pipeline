@@ -1,11 +1,11 @@
 # Regex Pipeline
 
-Regex Pipeline is a [obsidian](https://obsidian.md/) plugin that allows users setup custom regex rules to automatically format notes, this is especially useful in scenerios like building personal knowledge database.
+Regex Pipeline is a [obsidian](https://obsidian.md/) plugin that allows users to setup custom regex rules to automatically format notes, this is especially useful in scenerios like building personal knowledge database, because you often clip webpage from same sources.
 
 ![](https://i.imgur.com/KxLwG89.gif)
 
 ## Usage
-First of all, enable the plugin, a file named index.txt should be created at `.obsidian/regex-rulesets/`. Due to how Obsidian protects your disks, you have to specified what ruleset files are there to be read, that's why we need a index file.
+First of all, enable the plugin, a file named index.txt should be created at `.obsidian/regex-rulesets/`. Due to how Obsidian protects your disks, you have to specify what ruleset files are there to be read, that's why we need a index file.
 
 #### Writing Rulesets
 Now you can start editing your own rule sets.
@@ -46,7 +46,8 @@ Press the sidebar button of this plugin to show the rulesets menu, select your r
 The menu is a command so you can also bind it to a shortcut.
 
 ## Examples
-**Index.txt**
+**index.txt**
+.obsidian/regex-rulesets/index.txt
 ```
 number-to-alphabet.txt
 goo
@@ -67,59 +68,86 @@ goo
 ```
 **[Goo 辞書 Formatter](dictionary.goo.ne.jp/word/彷徨く/)** (Gif above)
 .obsidian/regex-rulesets/goo
-```"\!\[\]\(https://dictionary\.goo\.ne\.jp/img/daijisen/gaiji/02539\.gif\)"->"![[@1.gif]]"
+```
+"\!\[\]\(https://dictionary\.goo\.ne\.jp/img/daijisen/gaiji/02539\.gif\)"->"![[@1.gif]]"
 "\!\[\]\(https://dictionary\.goo\.ne\.jp/img/daijisen/gaiji/02540\.gif\)"->"![[@2.gif]]"
 "\!\[\]\(https://dictionary\.goo\.ne\.jp/img/daijisen/gaiji/02541\.gif\)"->"![[@3.gif]]"
 "\!\[\]\(https://dictionary\.goo\.ne\.jp/img/daijisen/gaiji/02542\.gif\)"->"![[@4.gif]]"
 "\!\[\]\(https://dictionary\.goo\.ne\.jp/img/daijisen/gaiji/02543\.gif\)"->"![[@5.gif]]"
 "\!\[\]\(https://dictionary\.goo\.ne\.jp/img/daijisen/gaiji/02544\.gif\)"->"![[@6.gif]]"
+::This fix example sentence right after a topic
 "［(.+?)］(.+)\n\n1\.  1\.  「"->"［$1］$2
 >「"
 ::This extract entry name from the title
 "^#\s.+goo国語辞書\n+(.+)\n+の解説\n+\-+"->"# $1"
-::This extract titles for sub entries
+
+::This extract titles for sub entries2
 "(.+?)\n\nの解説\n+?\-+"->"---
 # $1"
+
 :: This convert these lines to headers
 "^類語"->"#### 類語"
 "^関連語"->"#### 関連語"
 "^下接句"->"#### 下接句"
-"    [\n\s]?    1\.\s+"->"    >"
-:: This fix arrow reference
+
+:: Convert all second level single example sentence
+"    [\n\s]?    1\.\s+「(?!.+\n\s+?2\.)"->"    >「"
+
+:: These 2 fix arrow reference
 "    >→\[(.+?)\]\((.+)\)［(.+?)］"->"    →[$1]($2)［$3］"
+"    1\.  →\[(.+?)\]\((.+)\)［(.+?)］"->"    →[$1]($2)［$3］"
+
+:: This fix \n\n    → to \n    →
+"[\n\s]+?(?=    →\[.+?\]\(.+\)［.+?］)"->"
+"
+
+
+"^        「"->"        >「"
+
 :: This fix wrong bullets captured by [MardDownload](github.com/deathau/markdownload)
-"^1.  \*\*１\*\*"->"1. "
-"^1.  \*\*２\*\*"->"2. "
-"^1.  \*\*３\*\*"->"3. "
-"^1.  \*\*４\*\*"->"4. "
-"^1.  \*\*５\*\*"->"5. "
-"^1.  \*\*６\*\*"->"6. "
-"^1.  \*\*７\*\*"->"7. "
-"^1.  \*\*８\*\*"->"8. "
-"^1.  \*\*９\*\*"->"9. "
-"^1.  \*\*１０\*\*"->"10. "
-"^1.  \*\*１１\*\*"->"11. "
-"^1.  \*\*１２\*\*"->"12. "
-"^1.  \*\*１３\*\*"->"13. "
-"^1.  \*\*１４\*\*"->"14. "
-"^1.  \*\*１５\*\*"->"15. "
-"^1.  \*\*１６\*\*"->"16. "
-"^1.  \*\*１７\*\*"->"17. "
-"^1.  \*\*１８\*\*"->"18. "
-"^1.  \*\*１９\*\*"->"19. "
-"^1.  \*\*２０\*\*"->"20. "
-"^1.  \*\*２１\*\*"->"21. "
-"^1.  \*\*２２\*\*"->"22. "
-"^1.  \*\*２３\*\*"->"23. "
-"^1.  \*\*２４\*\*"->"24. "
-"^1.  \*\*２５\*\*"->"25. "
-"^1.  \*\*２６\*\*"->"26. "
-"^1.  \*\*２７\*\*"->"27. "
-"^1.  \*\*２８\*\*"->"28. "
-"^1.  \*\*２９\*\*"->"29. "
-"^1.  \*\*３０\*\*"->"30. "
+"^1\.  \*\*１\*\*"->"1. "
+"^1\.  \*\*２\*\*"->"2. "
+"^1\.  \*\*３\*\*"->"3. "
+"^1\.  \*\*４\*\*"->"4. "
+"^1\.  \*\*５\*\*"->"5. "
+"^1\.  \*\*６\*\*"->"6. "
+"^1\.  \*\*７\*\*"->"7. "
+"^1\.  \*\*８\*\*"->"8. "
+"^1\.  \*\*９\*\*"->"9. "
+"^1\.  \*\*１０\*\*"->"10. "
+"^1\.  \*\*１１\*\*"->"11. "
+"^1\.  \*\*１２\*\*"->"12. "
+"^1\.  \*\*１３\*\*"->"13. "
+"^1\.  \*\*１４\*\*"->"14. "
+"^1\.  \*\*１５\*\*"->"15. "
+"^1\.  \*\*１６\*\*"->"16. "
+"^1\.  \*\*１７\*\*"->"17. "
+"^1\.  \*\*１８\*\*"->"18. "
+"^1\.  \*\*１９\*\*"->"19. "
+"^1\.  \*\*２０\*\*"->"20. "
+"^1\.  \*\*２１\*\*"->"21. "
+"^1\.  \*\*２２\*\*"->"22. "
+"^1\.  \*\*２３\*\*"->"23. "
+"^1\.  \*\*２４\*\*"->"24. "
+"^1\.  \*\*２５\*\*"->"25. "
+"^1\.  \*\*２６\*\*"->"26. "
+"^1\.  \*\*２７\*\*"->"27. "
+"^1\.  \*\*２８\*\*"->"28. "
+"^1\.  \*\*２９\*\*"->"29. "
+"^1\.  \*\*３０\*\*"->"30. "
+"^(\d+?)\.  "->"$1. "
+
+:: This fix 2 space after bullets
+"    (\d+?)\.  "->"    $1. "
+::This clears empty lines.
+"\n\s+?\n    (\d+?)\. "->"
+    $1. "
+::This clears empty lines.
+"\n\s+?\n        >「"->"
+    >「"
+
 ::This clears empty lines.
 "^\s+\n(\d+)\."->"$1."
-"\n\n-   「"->"
->「"
+
+"    (\d+?)\. 「"->"    $1. >「"
 ```
