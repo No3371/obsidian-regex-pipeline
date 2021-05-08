@@ -8,7 +8,7 @@ export default class RegexPipeline extends Plugin {
 	log (message?: any, ...optionalParams: any[])
 	{
 		// comment this to disable logging
-		// console.log("[regex-pipeline] " + message);
+		console.log("[regex-pipeline] " + message);
 	}
 
 	async onload() {
@@ -118,7 +118,8 @@ class ApplyRuleSetMenu extends Modal {
 			new Setting(contentEl)
 				.setName(this.plugin.rules[i])
 				.addButton(btn => btn.onClick(async () => {
-					this.plugin.applyRuleset(this.plugin.pathToRulesets + this.plugin.rules[i])
+					this.plugin.applyRuleset(this.plugin.pathToRulesets + this.plugin.rules[i]);
+					this.close();					
 				}).setButtonText("Apply"));
 		}
 		new ButtonComponent(contentEl)
