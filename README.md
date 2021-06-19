@@ -2,7 +2,7 @@
 
 Regex Pipeline is a [obsidian](https://obsidian.md/) plugin that allows users to setup custom regex rules to automatically format notes, this is especially useful in scenerios like building personal knowledge database, because you often clip webpage from same sources.
 
-![](assets/regex-pipeline-newmenu.gif)
+![](https://github.com/No3371/obsidian-regex-pipeline/blob/master/assets/regex-pipeline-newmenu.gif)
 
 ## Usage
 First of all, enable the plugin, a file named index.txt should be created at `.obsidian/regex-rulesets/`. Due to how Obsidian protects your disks, you have to specify what ruleset files are there to be read, that's why we need a index file.
