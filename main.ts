@@ -4,6 +4,7 @@ export default class RegexPipeline extends Plugin {
 	rules: string[]
 	pathToRulesets = this.app.vault.configDir + "/regex-rulesets";
 	pathToIndex = this.app.vault.configDir + "/regex-rulesets/index.txt"
+	menu: ApplyRuleSetMenu
 
 	log (message?: any, ...optionalParams: any[])
 	{
@@ -13,9 +14,12 @@ export default class RegexPipeline extends Plugin {
 
 	async onload() {
 		this.log('loading');
+		this.menu = new ApplyRuleSetMenu(this.app, this)
+		this.menu.contentEl.className = "rulesets-menu-content"
+		this.menu.titleEl.className = "rulesets-menu-title"
 
 		this.addRibbonIcon('dice', 'Regex Rulesets', () => {
-			new ApplyRuleSetMenu(this.app, this).open();
+			this.menu.open();
 		});
 
 		this.addCommand({
@@ -28,7 +32,7 @@ export default class RegexPipeline extends Plugin {
 				let leaf = this.app.workspace.activeLeaf;
 				if (leaf) {
 					if (!checking) {
-						new ApplyRuleSetMenu(this.app, this).open();
+						this.menu.open();
 					}
 					return true;
 				}
@@ -49,7 +53,9 @@ export default class RegexPipeline extends Plugin {
 		if (!await this.app.vault.adapter.exists(this.pathToRulesets))
 			await this.app.vault.createFolder(this.pathToRulesets)
 		if (!await this.app.vault.adapter.exists(this.pathToIndex))
-			await this.app.vault.adapter.write(this.pathToIndex, "");
+			await this.app.vault.adapter.write(this.pathToIndex, "").catch((r) => {
+				new Notice("Failed to write to index file: " + r)
+			});
 
 		let p = this.app.vault.adapter.read(this.pathToIndex);
 		p.then(s => {
@@ -57,6 +63,39 @@ export default class RegexPipeline extends Plugin {
 			this.rules = this.rules.filter((v) => v.length > 0);
 			this.log(this.rules);
 		})
+	}
+
+	async appendRulesetsToIndex(name : string) : Promise<boolean> {
+		var result : boolean = true
+		this.rules.push(name)
+		var newIndexValue = "";
+		this.rules.forEach((v, i, all) => {
+			newIndexValue += v + "\n"
+		})
+		await this.app.vault.adapter.write(this.pathToIndex, newIndexValue).catch((r) => {
+			new Notice("Failed to write to index file: " + r)
+			result = false;
+		});
+
+		return result;		
+	}
+
+	async createRuleset (name : string, content : string) : Promise<boolean> {
+		var result : boolean = true
+		this.log("createRuleset: " + name);
+		var path = this.pathToRulesets + "/" + name;
+		if (await this.app.vault.adapter.exists(path)) {
+			this.log("file existed: " + path);
+			return false;
+		}
+
+		await this.app.vault.adapter.write(path, content).catch((r) => {
+			new Notice("Failed to write the ruleset file: " + r)
+			result = false;
+		});
+
+		result = await this.appendRulesetsToIndex(name)
+		return true;
 	}
 
 	async applyRuleset (ruleset : string) {
@@ -111,28 +150,95 @@ class ApplyRuleSetMenu extends Modal {
 	constructor(app: App, plugin: RegexPipeline) {
 		super(app);
 		this.plugin = plugin;
+		this.titleEl.append(this.titleEl.createEl("h1", null, el => { 
+			el.innerHTML = this.plugin.pathToRulesets + "/...";
+			el.style.setProperty("display", "inline-block");
+			el.style.setProperty("width", "92%");
+			el.style.setProperty("max-width", "480px");
+			el.style.setProperty("margin", "12 0 8");
+		}));
+		// var reloadButton = new ButtonComponent(this.titleEl)
+		// 	.setButtonText("RELOAD")
+		// 	.onClick(async (evt) => {
+		// 		this.plugin.reloadRulesets();
+		// 		this.onClose();
+		// 		this.onOpen();
+		// 	});
+		// reloadButton.buttonEl.style.setProperty("display", "inline-block")
+		// reloadButton.buttonEl.style.setProperty("float", "right")
+		// reloadButton.buttonEl.style.setProperty("bottom", "8px")
+		// reloadButton.buttonEl.style.setProperty("margin", "auto")
 	}
 
 	onOpen() {
-		let {contentEl} = this;
-		contentEl.append(contentEl.createEl("h1", null, el => el.innerHTML = this.plugin.pathToRulesets + "/..."));
 		for (let i = 0; i < this.plugin.rules.length; i++)
 		{
-			new Setting(contentEl)
-				.setName(this.plugin.rules[i])
-				.addButton(btn => btn.onClick(async () => {
+			// new Setting(contentEl)
+			// 	.setName(this.plugin.rules[i])
+			// 	.addButton(btn => btn.onClick(async () => {
+			// 		this.plugin.applyRuleset(this.plugin.pathToRulesets + "/" + this.plugin.rules[i])
+			// 		this.close();					
+			// 	}).setButtonText("Apply"));
+			var ruleset = new ButtonComponent(this.contentEl)
+				.setButtonText(this.plugin.rules[i])
+				.onClick(async (evt) => {
 					this.plugin.applyRuleset(this.plugin.pathToRulesets + "/" + this.plugin.rules[i])
 					this.close();					
-				}).setButtonText("Apply"));
+				});
+			ruleset.buttonEl.className = "add-ruleset-button";
 		}
-		new ButtonComponent(contentEl)
-			.setButtonText("RELOAD")
+		var addButton = new ButtonComponent(this.contentEl)
+			.setButtonText("+")
 			.onClick(async (evt) => {
-				this.plugin.reloadRulesets();
-				this.onClose();
-				this.onOpen();
-			})
-			.buttonEl.style.setProperty("margin", "auto");
+				new NewRuleset(this.app, this.plugin).open();
+			});
+		addButton.buttonEl.className = "add-ruleset-button";
+		addButton.buttonEl.style.setProperty("width", "3.3em");
+	}
+
+	onClose() {
+		let {contentEl} = this;
+		contentEl.empty();
+	}
+}
+
+class NewRuleset extends Modal {
+
+	plugin: RegexPipeline;
+	constructor(app: App, plugin: RegexPipeline) {
+		super(app);
+		this.plugin = plugin;
+		this.contentEl.className = "ruleset-creation-content"
+	}
+
+	onOpen() {
+		var nameHint = this.contentEl.createEl("h4");
+		nameHint.innerHTML = "Name";
+		this.contentEl.append(nameHint);
+		var nameInput = this.contentEl.createEl("textarea");
+		nameInput.setAttr("rows", "1");
+		nameInput.addEventListener('keydown', (e) => {
+			if (e.key === "Enter") e.preventDefault();
+		  });
+		this.contentEl.append(nameInput);
+		var contentHint = this.contentEl.createEl("h4");
+		contentHint.innerHTML = "Content";
+		this.contentEl.append(contentHint);
+		var contentInput = this.contentEl.createEl("textarea");
+		contentInput.style.setProperty("height", "300px");
+		this.contentEl.append(contentInput);
+		var saveButton = new ButtonComponent(this.contentEl)
+			.setButtonText("Save")
+			.onClick(async (evt) => {
+				if (!await this.plugin.createRuleset(nameInput.value, contentInput.value))
+				{
+					new Notice("Failed to create the ruleset! Please check if the file already exist.");
+					return
+				}
+				this.plugin.menu.onClose();
+				this.plugin.menu.onOpen();
+				this.close()
+			});
 	}
 
 	onClose() {
