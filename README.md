@@ -7,6 +7,10 @@ Regex Pipeline is a [obsidian](https://obsidian.md/) plugin that allows users to
 ## Usage
 First of all, enable the plugin, a file named index.txt should be created at `.obsidian/regex-rulesets/`. Due to how Obsidian protects your disks, you have to specify what ruleset files are there to be read, that's why we need a index file.
 
+Starting from 1.0.8, the menu is improved to fit in more rulesets, with a "add ruleset" funtionality included. you can add rulesets through the + button in the menu.
+
+As for now, you still have to go to `.obsidian/regex-rulesets/` and modify the file when you want to edit/remove rulesets, mainly because any UI to change what's already on your disk is not safe, also because it's hard to provide good editing experience which can match the experience that common editors provides (ex: Vscode).
+
 #### Writing Rulesets
 Now you can start editing your own rule sets.
 A ruleset contains one or more rule, the format looks like:
