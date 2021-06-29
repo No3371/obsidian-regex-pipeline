@@ -52,12 +52,6 @@ The menu is a command so you can also bind it to a shortcut.
 **Note**: The plugin support applying rules to selection only, if anything is selected, only selection is modified!
 
 ## Examples
-**index.txt**
-.obsidian/regex-rulesets/index.txt
-```
-number-to-alphabet.txt
-goo
-```
 
 **NumberToAlphabet**
 .obsidian/regex-rulesets/number-to-alphabet.txt
@@ -72,88 +66,12 @@ goo
 "8"->"H"
 "9"->"I"
 ```
-**[Goo 辞書 Formatter](dictionary.goo.ne.jp/word/彷徨く/)** (Gif above)
-.obsidian/regex-rulesets/goo
+
+**Table_c2**
+This ruleset help you transform selected content into a table of 2 columns!
+.obsidian/regex-rulesets/number-to-alphabet.txt
 ```
-"\!\[\]\(https://dictionary\.goo\.ne\.jp/img/daijisen/gaiji/02539\.gif\)"->"![[@1.gif]]"
-"\!\[\]\(https://dictionary\.goo\.ne\.jp/img/daijisen/gaiji/02540\.gif\)"->"![[@2.gif]]"
-"\!\[\]\(https://dictionary\.goo\.ne\.jp/img/daijisen/gaiji/02541\.gif\)"->"![[@3.gif]]"
-"\!\[\]\(https://dictionary\.goo\.ne\.jp/img/daijisen/gaiji/02542\.gif\)"->"![[@4.gif]]"
-"\!\[\]\(https://dictionary\.goo\.ne\.jp/img/daijisen/gaiji/02543\.gif\)"->"![[@5.gif]]"
-"\!\[\]\(https://dictionary\.goo\.ne\.jp/img/daijisen/gaiji/02544\.gif\)"->"![[@6.gif]]"
-::This fix example sentence right after a topic
-"［(.+?)］(.+)\n\n1\.  1\.  「"->"［$1］$2
->「"
-::This extract entry name from the title
-"^#\s.+goo国語辞書\n+(.+)\n+の解説\n+\-+"->"# $1"
-
-::This extract titles for sub entries2
-"(.+?)\n\nの解説\n+?\-+"->"---
-# $1"
-
-:: This convert these lines to headers
-"^類語"->"#### 類語"
-"^関連語"->"#### 関連語"
-"^下接句"->"#### 下接句"
-
-:: Convert all second level single example sentence
-"    [\n\s]?    1\.\s+「(?!.+\n\s+?2\.)"->"    >「"
-
-:: These 2 fix arrow reference
-"    >→\[(.+?)\]\((.+)\)［(.+?)］"->"    →[$1]($2)［$3］"
-"    1\.  →\[(.+?)\]\((.+)\)［(.+?)］"->"    →[$1]($2)［$3］"
-
-:: This fix \n\n    → to \n    →
-"[\n\s]+?(?=    →\[.+?\]\(.+\)［.+?］)"->"
-"
-
-
-"^        「"->"        >「"
-
-:: This fix wrong bullets captured by [MardDownload](github.com/deathau/markdownload)
-"^1\.  \*\*１\*\*"->"1. "
-"^1\.  \*\*２\*\*"->"2. "
-"^1\.  \*\*３\*\*"->"3. "
-"^1\.  \*\*４\*\*"->"4. "
-"^1\.  \*\*５\*\*"->"5. "
-"^1\.  \*\*６\*\*"->"6. "
-"^1\.  \*\*７\*\*"->"7. "
-"^1\.  \*\*８\*\*"->"8. "
-"^1\.  \*\*９\*\*"->"9. "
-"^1\.  \*\*１０\*\*"->"10. "
-"^1\.  \*\*１１\*\*"->"11. "
-"^1\.  \*\*１２\*\*"->"12. "
-"^1\.  \*\*１３\*\*"->"13. "
-"^1\.  \*\*１４\*\*"->"14. "
-"^1\.  \*\*１５\*\*"->"15. "
-"^1\.  \*\*１６\*\*"->"16. "
-"^1\.  \*\*１７\*\*"->"17. "
-"^1\.  \*\*１８\*\*"->"18. "
-"^1\.  \*\*１９\*\*"->"19. "
-"^1\.  \*\*２０\*\*"->"20. "
-"^1\.  \*\*２１\*\*"->"21. "
-"^1\.  \*\*２２\*\*"->"22. "
-"^1\.  \*\*２３\*\*"->"23. "
-"^1\.  \*\*２４\*\*"->"24. "
-"^1\.  \*\*２５\*\*"->"25. "
-"^1\.  \*\*２６\*\*"->"26. "
-"^1\.  \*\*２７\*\*"->"27. "
-"^1\.  \*\*２８\*\*"->"28. "
-"^1\.  \*\*２９\*\*"->"29. "
-"^1\.  \*\*３０\*\*"->"30. "
-"^(\d+?)\.  "->"$1. "
-
-:: This fix 2 space after bullets
-"    (\d+?)\.  "->"    $1. "
-::This clears empty lines.
-"\n\s+?\n    (\d+?)\. "->"
-    $1. "
-::This clears empty lines.
-"\n\s+?\n        >「"->"
-    >「"
-
-::This clears empty lines.
-"^\s+\n(\d+)\."->"$1."
-
-"    (\d+?)\. 「"->"    $1. >「"
+"^(.+)$\n\n^(.+)$"->"| $1 | $2 |"
 ```
+
+Take a look in [samples folder](/samples) for more examples, including a very complex one like the above gif!
