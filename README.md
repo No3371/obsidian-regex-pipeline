@@ -68,10 +68,10 @@ The menu is a command so you can also bind it to a shortcut.
 ```
 
 **Table_c2**
-This ruleset help you transform selected content into a table of 2 columns!
+This ruleset help you transform selected content into a table of 2 columns! Every 2 non-empty line will form a row.
 .obsidian/regex-rulesets/number-to-alphabet.txt
 ```
 "^(.+)$\n\n^(.+)$"->"| $1 | $2 |"
 ```
 
-Take a look in [samples folder](/samples) for more examples, including a very complex one like the above gif!
+Take a look in [samples folder](https://github.com/No3371/obsidian-regex-pipeline/tree/master/samples) for more examples, including a very complex one like the above gif!
