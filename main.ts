@@ -100,7 +100,7 @@ export default class RegexPipeline extends Plugin {
 
 	async applyRuleset (ruleset : string) {
 		this.log("applyRuleset: " + ruleset);
-		let ruleParser = /^"(.+?)"([a-z]?)->"(.+?)"([a-z]?)\n?$/gmus;		
+		let ruleParser = /^"(.+?)"([a-z]*?)->"(.+?)"([a-z]*?)\n?$/gmus;		
 		let ruleText = await this.app.vault.adapter.read(ruleset);
 
 		let activeMarkdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
@@ -157,17 +157,16 @@ class ApplyRuleSetMenu extends Modal {
 			el.style.setProperty("max-width", "480px");
 			el.style.setProperty("margin", "12 0 8");
 		}));
-		// var reloadButton = new ButtonComponent(this.titleEl)
-		// 	.setButtonText("RELOAD")
-		// 	.onClick(async (evt) => {
-		// 		this.plugin.reloadRulesets();
-		// 		this.onClose();
-		// 		this.onOpen();
-		// 	});
-		// reloadButton.buttonEl.style.setProperty("display", "inline-block")
-		// reloadButton.buttonEl.style.setProperty("float", "right")
-		// reloadButton.buttonEl.style.setProperty("bottom", "8px")
-		// reloadButton.buttonEl.style.setProperty("margin", "auto")
+		var reloadButton = new ButtonComponent(this.titleEl)
+			.setButtonText("RELOAD")
+			.onClick(async (evt) => {
+				this.plugin.reloadRulesets();
+				this.onClose();
+				this.onOpen();
+			});
+		reloadButton.buttonEl.style.setProperty("display", "inline-block")
+		reloadButton.buttonEl.style.setProperty("bottom", "8px")
+		reloadButton.buttonEl.style.setProperty("margin", "auto")
 	}
 
 	onOpen() {
