@@ -122,6 +122,7 @@ export default class RegexPipeline extends Plugin {
 			subject = activeMarkdownView.editor.getValue();
 		}
 
+		let pos = activeMarkdownView.editor.getScrollInfo()
 		let count = 0;
 		let ruleMatches;
 		while (ruleMatches = ruleParser.exec(ruleText))
@@ -140,6 +141,7 @@ export default class RegexPipeline extends Plugin {
 			activeMarkdownView.editor.setValue(subject);
 
 		activeMarkdownView.requestSave();
+		activeMarkdownView.editor.scrollTo(0, pos.top)
 		new Notice("Applied " + count + " regex replacements!");
 		
 	}
