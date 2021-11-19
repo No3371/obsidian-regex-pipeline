@@ -5,6 +5,9 @@ Regex Pipeline is an [Obsidian](https://obsidian.md/) plugin that allows users t
 ![](https://raw.githubusercontent.com/No3371/obsidian-regex-pipeline/master/assets/regex-pipeline-newmenu.gif)
 
 ## Usage
+
+> [Mr. Partan](www.lpartan.com) provided a nice [writeup](https://gist.github.com/No3371/f1750b178376f0659df6650ccaf57c12) about how to use the plugin, I recommend it if you are not familiar with regex or software usage. (September 2021, v1.0.9)
+
 First of all, enable the plugin, a file named index.txt should be created at `.obsidian/regex-rulesets/`. Due to how Obsidian protects your disks, you have to specify what ruleset files are there to be read, that's why we need a index file.
 
 Starting from 1.0.8, a in-app "add ruleset" funtionality is included. you can add rulesets through the + button in the menu, but you still have to go to `.obsidian/regex-rulesets/` and modify the files you want to edit/remove, mainly because any UI to change what's already on your disk is not safe, also because it's hard to provide good editing experience as common editors(ex: VSCode).
@@ -13,15 +16,16 @@ Starting from 1.0.8, a in-app "add ruleset" funtionality is included. you can ad
 Now you can start editing your own rule sets.
 A ruleset contains one or more rule, the format looks like:
 ```
-"SEARCH"->"REPLACE" // Any "SEARCH" becomes "REPLACE"
+:: Any "SEARCH" becomes "REPLACE"
+"SEARCH"->"REPLACE"
 ```
 
 #### Multi-line replacement string:
 ```
 "SEARCH"->"REP
 LACE"
-// Any "SEARCH" becomes "REP
-// LACE"
+:: Any "SEARCH" becomes "REP
+:: LACE"
 ```
 
 #### Regex Flags
@@ -36,7 +40,7 @@ Noted that `gm` flags are bascially neccessary for this plugin to be useful, you
 Due to how the plugin parse rules, the replacement string can not be a length zero string, if you want to delete with regex (replace with ""), you have to add a custom `x` flag:
 ```
 "SEARCH"->"REPLACE"x
-// Any "SEARCH" becomes ""
+:: Any "SEARCH" becomes ""
 ```
 In this case, whatever REPLACE is, the plugin treat it as "".
 
