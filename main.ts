@@ -1,10 +1,12 @@
-import { App, BaseComponent, ButtonComponent, Component, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, TextComponent, TFile, Vault } from 'obsidian';
+import { App, BaseComponent, ButtonComponent, Component, EventRef, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, TextAreaComponent, TextComponent, TFile, Vault } from 'obsidian';
 
 export default class RegexPipeline extends Plugin {
 	rules: string[]
 	pathToRulesets = this.app.vault.configDir + "/regex-rulesets";
-	pathToIndex = this.app.vault.configDir + "/regex-rulesets/index.txt"
+	indexFile = "/index.txt"
 	menu: ApplyRuleSetMenu
+	configs: SavedConfigs
+	rightClickEventRef: EventRef
 
 	log (message?: any, ...optionalParams: any[])
 	{
@@ -14,6 +16,10 @@ export default class RegexPipeline extends Plugin {
 
 	async onload() {
 		this.log('loading');
+		this.addSettingTab(new ORPSettings(this.app, this))
+		this.configs = await this.loadData()
+		if (this.configs == null) this.configs = new SavedConfigs(3, false)
+		if (this.configs.rulesInVault) this.pathToRulesets = "/regex-rulesets"
 		this.menu = new ApplyRuleSetMenu(this.app, this)
 		this.menu.contentEl.className = "rulesets-menu-content"
 		this.menu.titleEl.className = "rulesets-menu-title"
@@ -40,29 +46,49 @@ export default class RegexPipeline extends Plugin {
 			}
 		});
 
-		this.reloadRulesets();
+		this.reloadRulesets().then(
+			this.updateRightclickMenu.bind(this)
+		)
 		this.log("Rulesets: " + this.pathToRulesets);
-		this.log("Index: " + this.pathToIndex);
+		this.log("Index: " + this.pathToRulesets + this.indexFile);
+
 	}
 
 	onunload() {
 		this.log('unloading');
 	}
-	
+
 	async reloadRulesets() {
 		if (!await this.app.vault.adapter.exists(this.pathToRulesets))
 			await this.app.vault.createFolder(this.pathToRulesets)
-		if (!await this.app.vault.adapter.exists(this.pathToIndex))
-			await this.app.vault.adapter.write(this.pathToIndex, "").catch((r) => {
+		if (!await this.app.vault.adapter.exists(this.pathToRulesets + this.indexFile))
+			await this.app.vault.adapter.write(this.pathToRulesets + this.indexFile, "").catch((r) => {
 				new Notice("Failed to write to index file: " + r)
 			});
 
-		let p = this.app.vault.adapter.read(this.pathToIndex);
+		let p = this.app.vault.adapter.read(this.pathToRulesets + this.indexFile);
 		p.then(s => {
 			this.rules = s.split(/\r\n|\r|\n/);
 			this.rules = this.rules.filter((v) => v.length > 0);
-			this.log(this.rules);
+			// this.log(this.rules);
 		})
+	}
+
+	async updateRightclickMenu () {
+		if (this.rightClickEventRef != null) this.app.workspace.offref(this.rightClickEventRef)
+		this.rightClickEventRef = this.app.workspace.on("editor-menu", (menu) => {
+			for (let i = 0; i < Math.min(this.configs.quickRules, this.rules.length); i++)
+			{
+				let rPath = this.pathToRulesets + "/" + this.rules[i]
+				menu.addItem((item) => {
+					item.setTitle("Apply Regex Ruleset: " + this.rules[i])
+					.onClick(() => {
+						this.applyRuleset(rPath)
+					});
+				});
+			}
+		})
+		this.registerEvent(this.rightClickEventRef)
 	}
 
 	async appendRulesetsToIndex(name : string) : Promise<boolean> {
@@ -72,12 +98,12 @@ export default class RegexPipeline extends Plugin {
 		this.rules.forEach((v, i, all) => {
 			newIndexValue += v + "\n"
 		})
-		await this.app.vault.adapter.write(this.pathToIndex, newIndexValue).catch((r) => {
+		await this.app.vault.adapter.write(this.pathToRulesets + this.indexFile, newIndexValue).catch((r) => {
 			new Notice("Failed to write to index file: " + r)
 			result = false;
 		});
 
-		return result;		
+		return result;
 	}
 
 	async createRuleset (name : string, content : string) : Promise<boolean> {
@@ -99,8 +125,11 @@ export default class RegexPipeline extends Plugin {
 	}
 
 	async applyRuleset (ruleset : string) {
-		this.log("applyRuleset: " + ruleset);
-		let ruleParser = /^"(.+?)"([a-z]*?)->"(.+?)"([a-z]*?)\n?$/gmus;		
+		if (!await this.app.vault.adapter.exists(ruleset)) {
+			new Notice(ruleset + " not found!");
+			return
+		}
+		let ruleParser = /^"(.+?)"([a-z]*?)->"(.+?)"([a-z]*?)\n?$/gmus;
 		let ruleText = await this.app.vault.adapter.read(ruleset);
 
 		let activeMarkdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
@@ -123,12 +152,14 @@ export default class RegexPipeline extends Plugin {
 		}
 
 		let pos = activeMarkdownView.editor.getScrollInfo()
+		this.log(pos.top)
+
 		let count = 0;
 		let ruleMatches;
 		while (ruleMatches = ruleParser.exec(ruleText))
 		{
 			if (ruleMatches == null) break;
-			this.log("\n" + ruleMatches[1] + "\n↓↓↓↓↓\n"+ ruleMatches[3]);
+			// this.log("\n" + ruleMatches[1] + "\n↓↓↓↓↓\n"+ ruleMatches[3]);
 
 			let matchRule = ruleMatches[2].length == 0? new RegExp(ruleMatches[1], 'gm') : new RegExp(ruleMatches[1], ruleMatches[2]);
 			if (ruleMatches[4] == 'x') subject = subject.replace(matchRule, '');
@@ -137,14 +168,65 @@ export default class RegexPipeline extends Plugin {
 		}
 		if (selectionMode)
 			activeMarkdownView.editor.replaceSelection(subject);
-		else 
+		else
 			activeMarkdownView.editor.setValue(subject);
 
 		activeMarkdownView.requestSave();
 		activeMarkdownView.editor.scrollTo(0, pos.top)
-		new Notice("Applied " + count + " regex replacements!");
-		
+		new Notice("Executed " + count + " regex replacements!");
+
 	}
+}
+
+class SavedConfigs {
+	constructor(quickRules: number, rulesInVault: boolean) {
+		this.quickRules = quickRules
+		this.rulesInVault = rulesInVault
+	}
+	quickRules: number
+	rulesInVault: boolean
+}
+
+class ORPSettings extends PluginSettingTab {
+
+	plugin: RegexPipeline;
+	constructor(app: App, plugin: RegexPipeline) {
+		super(app, plugin);
+	}
+
+	display() {
+		this.containerEl.empty()
+		new Setting(this.containerEl)
+			.setName("Quick Rules")
+			.setDesc("The first N rulesets in your index file will be available in right click menu")
+			.addSlider(c => {
+				c.setValue(this.plugin.configs.quickRules)
+				c.setLimits(0, 10, 1)
+				c.setDynamicTooltip()
+				c.showTooltip()
+				c.onChange((v) => {
+					this.plugin.configs.quickRules = v
+				})
+			})
+		new Setting(this.containerEl)
+			.setName("Save Rules In Vault")
+			.setDesc("Reads rulesets from \".obsidian/regex-rulesets\" when off, \"./regex-ruleset\" when on (useful if you are user of ObsidianSync). ")
+			.addToggle(c => {
+				c.setValue(this.plugin.configs.rulesInVault)
+				c.onChange(v => {
+					this.plugin.configs.rulesInVault = v
+					if (v) this.plugin.pathToRulesets = "/regex-rulesets"
+					else this.plugin.pathToRulesets = this.app.vault.configDir + "/regex-rulesets"
+				})
+			})
+	}
+
+	hide () {
+		this.plugin.reloadRulesets()
+		this.plugin.updateRightclickMenu()
+		this.plugin.saveData(this.plugin.configs)
+	}
+
 }
 
 class ApplyRuleSetMenu extends Modal {
@@ -152,7 +234,7 @@ class ApplyRuleSetMenu extends Modal {
 	constructor(app: App, plugin: RegexPipeline) {
 		super(app);
 		this.plugin = plugin;
-		this.titleEl.append(this.titleEl.createEl("h1", null, el => { 
+		this.titleEl.append(this.titleEl.createEl("h1", null, el => {
 			el.innerHTML = this.plugin.pathToRulesets + "/...";
 			el.style.setProperty("display", "inline-block");
 			el.style.setProperty("width", "92%");
@@ -178,20 +260,20 @@ class ApplyRuleSetMenu extends Modal {
 			// 	.setName(this.plugin.rules[i])
 			// 	.addButton(btn => btn.onClick(async () => {
 			// 		this.plugin.applyRuleset(this.plugin.pathToRulesets + "/" + this.plugin.rules[i])
-			// 		this.close();					
+			// 		this.close();
 			// 	}).setButtonText("Apply"));
 			var ruleset = new ButtonComponent(this.contentEl)
 				.setButtonText(this.plugin.rules[i])
 				.onClick(async (evt) => {
 					this.plugin.applyRuleset(this.plugin.pathToRulesets + "/" + this.plugin.rules[i])
-					this.close();					
+					this.close();
 				});
 			ruleset.buttonEl.className = "add-ruleset-button";
 		}
 		var addButton = new ButtonComponent(this.contentEl)
 			.setButtonText("+")
 			.onClick(async (evt) => {
-				new NewRuleset(this.app, this.plugin).open();
+				new NewRulesetPanel(this.app, this.plugin).open();
 			});
 		addButton.buttonEl.className = "add-ruleset-button";
 		addButton.buttonEl.style.setProperty("width", "3.3em");
@@ -203,7 +285,7 @@ class ApplyRuleSetMenu extends Modal {
 	}
 }
 
-class NewRuleset extends Modal {
+class NewRulesetPanel extends Modal {
 
 	plugin: RegexPipeline;
 	constructor(app: App, plugin: RegexPipeline) {
