@@ -1,5 +1,7 @@
 # Regex Pipeline
 
+![](https://img.shields.io/github/downloads/no3371/obsidian-regex-pipeline/total?style=plastic)
+
 Regex Pipeline is an [Obsidian](https://obsidian.md/) plugin that allows users to setup custom regex rules to automatically format notes, this is especially useful in scenerios like building personal knowledge database, because you often clip webpage from same sources.
 
 ![](https://raw.githubusercontent.com/No3371/obsidian-regex-pipeline/master/assets/regex-pipeline-newmenu.gif)
