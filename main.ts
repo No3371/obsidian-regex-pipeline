@@ -1,4 +1,4 @@
-import { App, BaseComponent, ButtonComponent, Component, EventRef, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, TextAreaComponent, TextComponent, TFile, Vault } from 'obsidian';
+import { App, BaseComponent, ButtonComponent, Component, EventRef, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, TextAreaComponent, TextComponent, TFile, Vault, Command, Editor, Hotkey } from 'obsidian';
 
 export default class RegexPipeline extends Plugin {
 	rules: string[]
@@ -7,6 +7,8 @@ export default class RegexPipeline extends Plugin {
 	menu: ApplyRuleSetMenu
 	configs: SavedConfigs
 	rightClickEventRef: EventRef
+	quickCommands : Command[]
+	quickRulesChanged : boolean
 
 	log (message?: any, ...optionalParams: any[])
 	{
@@ -18,7 +20,7 @@ export default class RegexPipeline extends Plugin {
 		this.log('loading');
 		this.addSettingTab(new ORPSettings(this.app, this))
 		this.configs = await this.loadData()
-		if (this.configs == null) this.configs = new SavedConfigs(3, false)
+		if (this.configs == null) this.configs = new SavedConfigs(3, false, false)
 		if (this.configs.rulesInVault) this.pathToRulesets = "/regex-rulesets"
 		this.menu = new ApplyRuleSetMenu(this.app, this)
 		this.menu.contentEl.className = "rulesets-menu-content"
@@ -46,9 +48,7 @@ export default class RegexPipeline extends Plugin {
 			}
 		});
 
-		this.reloadRulesets().then(
-			this.updateRightclickMenu.bind(this)
-		)
+		this.reloadRulesets();
 		this.log("Rulesets: " + this.pathToRulesets);
 		this.log("Index: " + this.pathToRulesets + this.indexFile);
 
@@ -56,6 +56,7 @@ export default class RegexPipeline extends Plugin {
 
 	onunload() {
 		this.log('unloading');
+		if (this.rightClickEventRef != null) this.app.workspace.offref(this.rightClickEventRef)
 	}
 
 	async reloadRulesets() {
@@ -71,7 +72,30 @@ export default class RegexPipeline extends Plugin {
 			this.rules = s.split(/\r\n|\r|\n/);
 			this.rules = this.rules.filter((v) => v.length > 0);
 			// this.log(this.rules);
+			this.updateRightclickMenu();
+			this.updateQuickCommands();
 		})
+	}
+
+	async updateQuickCommands () {
+		if (!this.configs.quickCommands) return;
+		if (this.quickCommands == null) this.quickCommands = new Array<Command>();
+		for (let i = this.quickCommands.length; i < this.configs.quickRules; i++)
+		{
+			let c = this.addCommand({
+				id: 'ruleset:' + this.rules[i],
+				name: '__',
+				editorCallback: () => {
+					this.applyRuleset(this.pathToRulesets + "/" + this.rules[i]);
+				}
+			});
+			this.quickCommands.push(c);
+		}
+
+		for (let i = 0; i < this.configs.quickRules; i++)
+		{
+			this.quickCommands[i].name = "Regex Pipeline: " + this.rules[i];
+		}
 	}
 
 	async updateRightclickMenu () {
@@ -80,8 +104,9 @@ export default class RegexPipeline extends Plugin {
 			for (let i = 0; i < Math.min(this.configs.quickRules, this.rules.length); i++)
 			{
 				let rPath = this.pathToRulesets + "/" + this.rules[i]
+				
 				menu.addItem((item) => {
-					item.setTitle("Apply Regex Ruleset: " + this.rules[i])
+					item.setTitle("Regex Pipeline: " + this.rules[i])
 					.onClick(() => {
 						this.applyRuleset(rPath)
 					});
@@ -173,18 +198,20 @@ export default class RegexPipeline extends Plugin {
 
 		activeMarkdownView.requestSave();
 		activeMarkdownView.editor.scrollTo(0, pos.top)
-		new Notice("Executed " + count + " regex replacements!");
+		new Notice("Executed ruleset '" + ruleset + "' which contains " + count + " regex replacements!");
 
 	}
 }
 
 class SavedConfigs {
-	constructor(quickRules: number, rulesInVault: boolean) {
+	constructor(quickRules: number, rulesInVault: boolean, quickCommands : boolean) {
 		this.quickRules = quickRules
 		this.rulesInVault = rulesInVault
+		this.quickCommands = quickCommands
 	}
 	quickRules: number
 	rulesInVault: boolean
+	quickCommands : boolean
 }
 
 class ORPSettings extends PluginSettingTab {
@@ -194,20 +221,23 @@ class ORPSettings extends PluginSettingTab {
 		super(app, plugin);
 	}
 
+	quickRulesCache : number
+
 	display() {
 		this.containerEl.empty()
 		new Setting(this.containerEl)
 			.setName("Quick Rules")
-			.setDesc("The first N rulesets in your index file will be available in right click menu")
+			.setDesc("The first N rulesets in your index file will be available in right click menu and as commands.\nIf decreasing, Quick Commands will not be removed until next reload.")
 			.addSlider(c => {
 				c.setValue(this.plugin.configs.quickRules)
 				c.setLimits(0, 10, 1)
 				c.setDynamicTooltip()
 				c.showTooltip()
 				c.onChange((v) => {
-					this.plugin.configs.quickRules = v
+					if (v != this.plugin.configs.quickRules) this.plugin.quickRulesChanged = true;
+					this.plugin.configs.quickRules = v;
 				})
-			})
+			}) 
 		new Setting(this.containerEl)
 			.setName("Save Rules In Vault")
 			.setDesc("Reads rulesets from \".obsidian/regex-rulesets\" when off, \"./regex-ruleset\" when on (useful if you are user of ObsidianSync). ")
@@ -219,11 +249,19 @@ class ORPSettings extends PluginSettingTab {
 					else this.plugin.pathToRulesets = this.app.vault.configDir + "/regex-rulesets"
 				})
 			})
+		new Setting(this.containerEl)
+			.setName("Quick Commands")
+			.setDesc("Additionally provide quick rules in commands.")
+			.addToggle(c => {
+				c.setValue(this.plugin.configs.quickCommands)
+				c.onChange(v => {
+					this.plugin.configs.quickCommands = v
+				})
+			})
 	}
 
 	hide () {
 		this.plugin.reloadRulesets()
-		this.plugin.updateRightclickMenu()
 		this.plugin.saveData(this.plugin.configs)
 	}
 
