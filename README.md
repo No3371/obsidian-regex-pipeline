@@ -14,6 +14,10 @@ First of all, enable the plugin, a file named index.txt should be created at `.o
 
 Starting from 1.0.8, a in-app "add ruleset" funtionality is included. you can add rulesets through the + button in the menu, but you still have to go to `.obsidian/regex-rulesets/` and modify the files you want to edit/remove, mainly because any UI to change what's already on your disk is not safe, also because it's hard to provide good editing experience as common editors(ex: VSCode).
 
+Starting from 1.1.0, you can apply rulesets through right-click menu. The available option count can be adjusted in settings.
+
+Starting from 1.2.0, the quick rulesets (mentioned right above) can be invoked through Obsidian's command system after **Quick Commands** is toggled on in settings.
+
 #### Writing Rulesets
 Now you can start editing your own rule sets.
 A ruleset contains one or more rule, the format looks like:
