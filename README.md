@@ -91,3 +91,7 @@ Take a look in [samples folder](https://github.com/No3371/obsidian-regex-pipelin
 
 ## Recommendations
 - Markdownload (https://github.com/deathau/markdownload): for clipping webpages, don't forget to configure it to match your editing preferences.
+
+## FAQ
+#### My ruleset file doesn't work,The notification says there's 0 replacement, but I'm sure the format is correct.
+It's possible that your ruleset file is in non-UTF8 encoding, this happens with some editor applications, please refer to [#12](https://github.com/No3371/obsidian-regex-pipeline/issues/12).
