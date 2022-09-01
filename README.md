@@ -2,63 +2,11 @@
 
 ![](https://img.shields.io/github/downloads/no3371/obsidian-regex-pipeline/total?style=plastic)
 
+(Sharing rulesets in Discussions is welcomed)
+
 Regex Pipeline is an [Obsidian](https://obsidian.md/) plugin that allows users to setup custom regex rules to automatically format notes, this is especially useful in scenerios like building personal knowledge database, because you often clip webpage from same sources.
 
 ![](https://raw.githubusercontent.com/No3371/obsidian-regex-pipeline/master/assets/regex-pipeline-newmenu.gif)
-
-## Latest Update: v1.3
-
-1. `x` is no longer needed to replace with nothing.
-
-```
-:: Any "SEARCH" becomes ""
-"SEARCH"->""
-```
-
-2. Now supports flexier formats. Readibility++
-
-✅ These works:
-```
-"SEARCH"->"REPLACE"
-```
-
-```
-"SEARCH"
-->"REPLACE"
-```
-
-```
-"SEARCH"
-->
-"REPLACE"
-```
-
-```
-"SEARCH"->
-"REPLACE"
-```
-
-❌ These does NOT work (Empty line inbetween not allowed; Nothing except new line is allowed right before and after the `->`)
-
-```
-"SEARCH"
-
-->
-"REPLACE"
-```
-
-```
-"SEARCH"->
-
-"REPLACE"
-```
-
-```
-"SEARCH"
-->
-
-"REPLACE"
-```
 
 ## Usage
 
@@ -67,6 +15,10 @@ Regex Pipeline is an [Obsidian](https://obsidian.md/) plugin that allows users t
 First of all, enable the plugin, a file named index.txt should be created at `.obsidian/regex-rulesets/`. Due to how Obsidian protects your disks, you have to specify what ruleset files are there to be read, that's why we need a index file.
 
 Starting from 1.0.8, a in-app "add ruleset" funtionality is included. you can add rulesets through the + button in the menu, but you still have to go to `.obsidian/regex-rulesets/` and modify the files you want to edit/remove, mainly because any UI to change what's already on your disk is not safe, also because it's hard to provide good editing experience as common editors(ex: VSCode).
+
+Starting from 1.1.0, you can apply rulesets through right-click menu. The available option count can be adjusted in settings.
+
+Starting from 1.2.0, the quick rulesets (mentioned right above) can be invoked through Obsidian's command system after **Quick Commands** is toggled on in settings.
 
 #### Writing Rulesets
 Now you can start editing your own rule sets.
@@ -93,10 +45,13 @@ By default, `gm` (multiline) flag is appended to the **SEARCH** regex, you can o
 Noted that `gm` flags are bascially neccessary for this plugin to be useful, you seldom wants to replace only 1 occurances or operate on a note only contains 1 line.
 
 #### Replace With Nothing
+Due to how the plugin parse rules, the replacement string can not be a length zero string, if you want to delete with regex (replace with ""), you have to add a custom `x` flag:
 ```
-"SEARCH"->""
+"SEARCH"->"REPLACE"x
 :: Any "SEARCH" becomes ""
 ```
+In this case, whatever REPLACE is, the plugin treat it as "".
+
 
 #### Indexing
 Rulesets must be saved in `.obsidian/regex-rulesets/`, and have to be included in the `index.txt`, one file per line. The order also decides the displaying order in-app.
@@ -136,3 +91,7 @@ Take a look in [samples folder](https://github.com/No3371/obsidian-regex-pipelin
 
 ## Recommendations
 - Markdownload (https://github.com/deathau/markdownload): for clipping webpages, don't forget to configure it to match your editing preferences.
+
+## FAQ
+#### My ruleset file doesn't work,The notification says there's 0 replacement, but I'm sure the format is correct.
+It's possible that your ruleset file is in non-UTF8 encoding, this happens with some editor applications, please refer to [#12](https://github.com/No3371/obsidian-regex-pipeline/issues/12).

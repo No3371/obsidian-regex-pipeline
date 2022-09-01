@@ -3,7 +3,6 @@ nihongosensei
 example_sentences
 Table_c2
 Remove Empty Lines
-Make bullets
 Append Quote
 Split After First 。
 Connect lines with <br>
