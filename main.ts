@@ -13,7 +13,7 @@ export default class RegexPipeline extends Plugin {
 	log (message?: any, ...optionalParams: any[])
 	{
 		// comment this to disable logging
-		console.log("[regex-pipeline] " + message);
+		// console.log("[regex-pipeline] " + message);
 	}
 
 	async onload() {
@@ -71,7 +71,7 @@ export default class RegexPipeline extends Plugin {
 		p.then(s => {
 			this.rules = s.split(/\r\n|\r|\n/);
 			this.rules = this.rules.filter((v) => v.length > 0);
-			// this.log(this.rules);
+			this.log(this.rules);
 			this.updateRightclickMenu();
 			this.updateQuickCommands();
 		})
@@ -154,7 +154,7 @@ export default class RegexPipeline extends Plugin {
 			new Notice(ruleset + " not found!");
 			return
 		}
-		let ruleParser = /^"(.+?)"([a-z]*?)->"(.+?)"([a-z]*?)\n?$/gmus;
+		let ruleParser = /^"(.+?)"([a-z]*?)\n?->\n?"(.*?)"([a-z]*?)\n?$/gmus;
 		let ruleText = await this.app.vault.adapter.read(ruleset);
 
 		let activeMarkdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
@@ -184,7 +184,7 @@ export default class RegexPipeline extends Plugin {
 		while (ruleMatches = ruleParser.exec(ruleText))
 		{
 			if (ruleMatches == null) break;
-			// this.log("\n" + ruleMatches[1] + "\n↓↓↓↓↓\n"+ ruleMatches[3]);
+			this.log("\n" + ruleMatches[1] + "\n↓↓↓↓↓\n"+ ruleMatches[3]);
 
 			let matchRule = ruleMatches[2].length == 0? new RegExp(ruleMatches[1], 'gm') : new RegExp(ruleMatches[1], ruleMatches[2]);
 			if (ruleMatches[4] == 'x') subject = subject.replace(matchRule, '');
@@ -308,6 +308,7 @@ class ApplyRuleSetMenu extends Modal {
 				});
 			ruleset.buttonEl.className = "add-ruleset-button";
 		}
+		this.titleEl.getElementsByTagName("h1")[0].innerHTML = this.plugin.pathToRulesets + "/...";
 		var addButton = new ButtonComponent(this.contentEl)
 			.setButtonText("+")
 			.onClick(async (evt) => {
