@@ -19,7 +19,7 @@ Regex Pipeline is an [Obsidian](https://obsidian.md/) plugin that allows users t
 
 2. Now supports flexier formats. Readibility++
 
-✅ These works:
+✅ These work:
 ```
 "SEARCH"->"REPLACE"
 ```
