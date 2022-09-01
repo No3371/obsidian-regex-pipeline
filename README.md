@@ -8,6 +8,60 @@ Regex Pipeline is an [Obsidian](https://obsidian.md/) plugin that allows users t
 
 ![](https://raw.githubusercontent.com/No3371/obsidian-regex-pipeline/master/assets/regex-pipeline-newmenu.gif)
 
+## Latest Update: v1.3
+
+1. `x` is no longer needed to replace with nothing.
+
+```
+:: Any "SEARCH" becomes ""
+"SEARCH"->""
+```
+
+2. Now supports flexier formats. Readibility++
+
+✅ These works:
+```
+"SEARCH"->"REPLACE"
+```
+
+```
+"SEARCH"
+->"REPLACE"
+```
+
+```
+"SEARCH"
+->
+"REPLACE"
+```
+
+```
+"SEARCH"->
+"REPLACE"
+```
+
+❌ These does NOT work (Empty line inbetween not allowed; Nothing except new line is allowed right before and after the `->`)
+
+```
+"SEARCH"
+
+->
+"REPLACE"
+```
+
+```
+"SEARCH"->
+
+"REPLACE"
+```
+
+```
+"SEARCH"
+->
+
+"REPLACE"
+```
+
 ## Usage
 
 > [Mr. Partan](www.lpartan.com) provided a nice [writeup](https://gist.github.com/No3371/f1750b178376f0659df6650ccaf57c12) about how to use the plugin, I recommend it if you are not familiar with regex or software usage. (September 2021, v1.0.9)
