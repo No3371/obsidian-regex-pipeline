@@ -40,7 +40,7 @@ Regex Pipeline is an [Obsidian](https://obsidian.md/) plugin that allows users t
 "REPLACE"
 ```
 
-❌ These does NOT work (Empty line inbetween not allowed; Nothing except new line is allowed right before and after the `->`)
+❌ These do NOT work (Empty line inbetween not allowed; Nothing except new line is allowed right before and after the `->`)
 
 ```
 "SEARCH"
