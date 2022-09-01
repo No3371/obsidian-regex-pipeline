@@ -10,7 +10,7 @@ Regex Pipeline is an [Obsidian](https://obsidian.md/) plugin that allows users t
 
 ## Latest Update: v1.3
 
-1. `x` is no longer needed to replace with nothing.
+1. `x` is no longer needed to replace with nothing (Previous rules won't break, `x` still works).
 
 ```
 :: Any "SEARCH" becomes ""
