@@ -13,7 +13,7 @@ export default class RegexPipeline extends Plugin {
 	log (message?: any, ...optionalParams: any[])
 	{
 		// comment this to disable logging
-		// console.log("[regex-pipeline] " + message);
+		console.log("[regex-pipeline] " + message);
 	}
 
 	async onload() {
@@ -154,7 +154,7 @@ export default class RegexPipeline extends Plugin {
 			new Notice(ruleset + " not found!");
 			return
 		}
-		let ruleParser = /^"(.+?)"([a-z]*?)\n?->\n?"(.*?)"([a-z]*?)\n?$/gmus;
+		let ruleParser = /^"(.+?)"([a-z]*?)(?:\r\n|\r|\n)?->(?:\r\n|\r|\n)?"(.*?)"([a-z]*?)(?:\r\n|\r|\n)?$/gmus;
 		let ruleText = await this.app.vault.adapter.read(ruleset);
 
 		let activeMarkdownView = this.app.workspace.getActiveViewOfType(MarkdownView);

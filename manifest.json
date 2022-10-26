@@ -1,7 +1,7 @@
 {
 	"id": "obsidian-regex-pipeline",
 	"name": "Regex Pipeline",
-	"version": "1.3.0",
+	"version": "1.3.1",
 	"minAppVersion": "0.12.19",
 	"description": "Allows users setup custom regex rules to automatically format notes",
 	"author": "No3371",
