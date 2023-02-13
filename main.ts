@@ -20,7 +20,7 @@ export default class RegexPipeline extends Plugin {
 		this.log('loading');
 		this.addSettingTab(new ORPSettings(this.app, this))
 		this.configs = await this.loadData()
-		if (this.configs == null) this.configs = new SavedConfigs(3, false, false)
+		if (this.configs == null) this.configs = new SavedConfigs(3, 3, false)
 		if (this.configs.rulesInVault) this.pathToRulesets = "/regex-rulesets"
 		this.menu = new ApplyRuleSetMenu(this.app, this)
 		this.menu.contentEl.className = "rulesets-menu-content"
@@ -78,23 +78,24 @@ export default class RegexPipeline extends Plugin {
 	}
 
 	async updateQuickCommands () {
-		if (!this.configs.quickCommands) return;
+		if (this.configs.quickCommands <= 0) return;
 		if (this.quickCommands == null) this.quickCommands = new Array<Command>();
-		for (let i = this.quickCommands.length; i < this.configs.quickRules; i++)
+		let expectedCommands = Math.min(this.configs.quickCommands, this.rules.length);
+		this.log(`setting up ${expectedCommands} commands...`)
+		for (let i = 0; i < expectedCommands; i++)
 		{
+			let r = this.rules[i];
 			let c = this.addCommand({
-				id: 'ruleset:' + this.rules[i],
-				name: '__',
-				editorCallback: () => {
-					this.applyRuleset(this.pathToRulesets + "/" + this.rules[i]);
-				}
+				id: `ruleset: ${r}`,
+				name: r,
+				editorCheckCallback: (checking: boolean) => {
+					if (checking) return this.rules.contains(r);
+					this.applyRuleset(this.pathToRulesets + "/" + r);
+				},
 			});
+			this.log(`pusing ${r} command...`)
 			this.quickCommands.push(c);
-		}
-
-		for (let i = 0; i < this.configs.quickRules; i++)
-		{
-			this.quickCommands[i].name = "Regex Pipeline: " + this.rules[i];
+			this.log(this.quickCommands)
 		}
 	}
 
@@ -204,14 +205,14 @@ export default class RegexPipeline extends Plugin {
 }
 
 class SavedConfigs {
-	constructor(quickRules: number, rulesInVault: boolean, quickCommands : boolean) {
+	constructor(quickRules: number, quickCommands : number, rulesInVault: boolean) {
 		this.quickRules = quickRules
 		this.rulesInVault = rulesInVault
 		this.quickCommands = quickCommands
 	}
 	quickRules: number
+	quickCommands : number
 	rulesInVault: boolean
-	quickCommands : boolean
 }
 
 class ORPSettings extends PluginSettingTab {
@@ -227,7 +228,7 @@ class ORPSettings extends PluginSettingTab {
 		this.containerEl.empty()
 		new Setting(this.containerEl)
 			.setName("Quick Rules")
-			.setDesc("The first N rulesets in your index file will be available in right click menu and as commands.\nIf decreasing, Quick Commands will not be removed until next reload.")
+			.setDesc("The first N rulesets in your index file will be available in right click menu.")
 			.addSlider(c => {
 				c.setValue(this.plugin.configs.quickRules)
 				c.setLimits(0, 10, 1)
@@ -239,6 +240,19 @@ class ORPSettings extends PluginSettingTab {
 				})
 			}) 
 		new Setting(this.containerEl)
+			.setName("Quick Rule Commands")
+			.setDesc("The first N rulesets in your index file will be available as Obsidian commands. If decreasing, the existing commands will not be removed until next reload (You can also manually re-enabled the plugin).")
+			.addSlider(c => {
+				c.setValue(this.plugin.configs.quickCommands)
+				c.setLimits(0, 10, 1)
+				c.setDynamicTooltip()
+				c.showTooltip()
+				c.onChange((v) => {
+					this.plugin.configs.quickCommands = v;
+					this.plugin.updateQuickCommands();
+				})
+			}) 
+		new Setting(this.containerEl)
 			.setName("Save Rules In Vault")
 			.setDesc("Reads rulesets from \".obsidian/regex-rulesets\" when off, \"./regex-ruleset\" when on (useful if you are user of ObsidianSync). ")
 			.addToggle(c => {
@@ -247,15 +261,6 @@ class ORPSettings extends PluginSettingTab {
 					this.plugin.configs.rulesInVault = v
 					if (v) this.plugin.pathToRulesets = "/regex-rulesets"
 					else this.plugin.pathToRulesets = this.app.vault.configDir + "/regex-rulesets"
-				})
-			})
-		new Setting(this.containerEl)
-			.setName("Quick Commands")
-			.setDesc("Additionally provide quick rules in commands.")
-			.addToggle(c => {
-				c.setValue(this.plugin.configs.quickCommands)
-				c.onChange(v => {
-					this.plugin.configs.quickCommands = v
 				})
 			})
 	}
@@ -272,17 +277,21 @@ class ApplyRuleSetMenu extends Modal {
 	constructor(app: App, plugin: RegexPipeline) {
 		super(app);
 		this.plugin = plugin;
-		this.titleEl.append(this.titleEl.createEl("h1", null, el => {
+		this.modalEl.style.setProperty("width", "60vw");
+		this.modalEl.style.setProperty("max-height", "60vh");
+		this.modalEl.style.setProperty("padding", "2rem");
+		this.titleEl.createEl("h1", null, el => {
 			el.innerHTML = this.plugin.pathToRulesets + "/...";
 			el.style.setProperty("display", "inline-block");
 			el.style.setProperty("width", "92%");
 			el.style.setProperty("max-width", "480px");
 			el.style.setProperty("margin", "12 0 8");
-		}));
+		});
+		this.titleEl.createEl("h1", null, el => { el.style.setProperty("flex-grow", "1") });
 		var reloadButton = new ButtonComponent(this.titleEl)
 			.setButtonText("RELOAD")
 			.onClick(async (evt) => {
-				this.plugin.reloadRulesets();
+				await this.plugin.reloadRulesets();
 				this.onClose();
 				this.onOpen();
 			});
@@ -306,7 +315,7 @@ class ApplyRuleSetMenu extends Modal {
 					this.plugin.applyRuleset(this.plugin.pathToRulesets + "/" + this.plugin.rules[i])
 					this.close();
 				});
-			ruleset.buttonEl.className = "add-ruleset-button";
+			ruleset.buttonEl.className = "apply-ruleset-button";
 		}
 		this.titleEl.getElementsByTagName("h1")[0].innerHTML = this.plugin.pathToRulesets + "/...";
 		var addButton = new ButtonComponent(this.contentEl)

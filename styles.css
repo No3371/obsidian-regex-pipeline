@@ -5,20 +5,20 @@
     flex-direction: row;
     flex-wrap: wrap;
     align-content: flex-start;
+    gap: 0.3rem;
 }
 
-.add-ruleset-button {
+.add-ruleset-button, .apply-ruleset-button {
     height: 3.3em;
     font-size: large;
     font-weight: 800;
     background-color: transparent !important;
-    box-shadow: 0 0 1px 2px var(--interactive-accent) inset;
     color: var(--interactive-accent);
     box-sizing: border-box;
-    margin: 6px 6px 6px 0
+    margin: 6px 6px 6px 0;
 }
 
-.add-ruleset-button:hover {
+.add-ruleset-button:hover, .apply-ruleset-button:hover {
     font-size: large;
     box-shadow: 0 0 1px 3px var(--interactive-accent-hover) inset;
     color: var(--interactive-accent-hover);
@@ -45,4 +45,9 @@
 .ruleset-creation-content textarea {
     background-color: transparent;
     box-shadow: 0 0 1px 2px var(--interactive-accent) inset;    
+}
+
+.rulesets-menu-title {
+    display: flex;
+    flex-direction: row;
 }
