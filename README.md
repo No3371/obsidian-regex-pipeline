@@ -8,16 +8,25 @@ Regex Pipeline is an [Obsidian](https://obsidian.md/) plugin that allows users t
 
 ![](https://raw.githubusercontent.com/No3371/obsidian-regex-pipeline/master/assets/regex-pipeline-newmenu.gif)
 
-## Latest Update: v1.3
+## Usage
 
-1. `x` is no longer needed to replace with nothing (Previous rules won't break, `x` still works).
+> [Mr. Partan](www.lpartan.com) provided a nice [writeup](https://gist.github.com/No3371/f1750b178376f0659df6650ccaf57c12) about how to use the plugin, I recommend it if you are not familiar with regex or software usage. (September 2021, v1.0.9)
 
+First of all, enable the plugin, a file named index.txt should be created at `.obsidian/regex-rulesets/`. Due to how Obsidian protects your disks, you have to specify what ruleset files are there to be read, that's why we need a index file.
+
+Starting from 1.0.8, a in-app "add ruleset" funtionality is included. you can add rulesets through the + button in the menu, but you still have to go to `.obsidian/regex-rulesets/` and modify the files you want to edit/remove, mainly because any UI to change what's already on your disk is not safe, also because it's hard to provide good editing experience as common editors(ex: VSCode).
+
+Starting from 1.1.0, you can apply rulesets through right-click menu. The available option count can be adjusted in settings.
+
+Starting from 1.2.0, the quick rulesets (mentioned right above) can be invoked through Obsidian's command system after **Quick Commands** is toggled on in settings.
+
+#### Writing Rulesets
+Now you can start editing your own rule sets.
+A ruleset contains one or more rule, the format looks like:
 ```
-:: Any "SEARCH" becomes ""
-"SEARCH"->""
+:: Any "SEARCH" becomes "REPLACE"
+"SEARCH"->"REPLACE"
 ```
-
-2. Now supports flexier formats. Readibility++
 
 ✅ These work:
 ```
@@ -62,26 +71,6 @@ Regex Pipeline is an [Obsidian](https://obsidian.md/) plugin that allows users t
 "REPLACE"
 ```
 
-## Usage
-
-> [Mr. Partan](www.lpartan.com) provided a nice [writeup](https://gist.github.com/No3371/f1750b178376f0659df6650ccaf57c12) about how to use the plugin, I recommend it if you are not familiar with regex or software usage. (September 2021, v1.0.9)
-
-First of all, enable the plugin, a file named index.txt should be created at `.obsidian/regex-rulesets/`. Due to how Obsidian protects your disks, you have to specify what ruleset files are there to be read, that's why we need a index file.
-
-Starting from 1.0.8, a in-app "add ruleset" funtionality is included. you can add rulesets through the + button in the menu, but you still have to go to `.obsidian/regex-rulesets/` and modify the files you want to edit/remove, mainly because any UI to change what's already on your disk is not safe, also because it's hard to provide good editing experience as common editors(ex: VSCode).
-
-Starting from 1.1.0, you can apply rulesets through right-click menu. The available option count can be adjusted in settings.
-
-Starting from 1.2.0, the quick rulesets (mentioned right above) can be invoked through Obsidian's command system after **Quick Commands** is toggled on in settings.
-
-#### Writing Rulesets
-Now you can start editing your own rule sets.
-A ruleset contains one or more rule, the format looks like:
-```
-:: Any "SEARCH" becomes "REPLACE"
-"SEARCH"->"REPLACE"
-```
-
 #### Multi-line replacement string:
 ```
 "SEARCH"->"REP
@@ -99,9 +88,8 @@ By default, `gm` (multiline) flag is appended to the **SEARCH** regex, you can o
 Noted that `gm` flags are bascially neccessary for this plugin to be useful, you seldom wants to replace only 1 occurances or operate on a note only contains 1 line.
 
 #### Replace With Nothing
-Due to how the plugin parse rules, the replacement string can not be a length zero string, if you want to delete with regex (replace with ""), you have to add a custom `x` flag:
 ```
-"SEARCH"->"REPLACE"x
+"SEARCH"->""
 :: Any "SEARCH" becomes ""
 ```
 In this case, whatever REPLACE is, the plugin treat it as "".
