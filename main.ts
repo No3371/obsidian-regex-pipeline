@@ -81,7 +81,7 @@ export default class RegexPipeline extends Plugin {
 		if (this.configs.quickCommands <= 0) return;
 		if (this.quickCommands == null) this.quickCommands = new Array<Command>();
 		let expectedCommands = Math.min(this.configs.quickCommands, this.rules.length);
-		this.log(`setting up ${expectedCommands} commands...`)
+		// this.log(`setting up ${expectedCommands} commands...`)
 		for (let i = 0; i < expectedCommands; i++)
 		{
 			let r = this.rules[i];
@@ -93,7 +93,7 @@ export default class RegexPipeline extends Plugin {
 					this.applyRuleset(this.pathToRulesets + "/" + r);
 				},
 			});
-			this.log(`pusing ${r} command...`)
+			// this.log(`pusing ${r} command...`)
 			this.quickCommands.push(c);
 			this.log(this.quickCommands)
 		}
