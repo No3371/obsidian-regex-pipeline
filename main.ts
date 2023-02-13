@@ -228,7 +228,7 @@ class ORPSettings extends PluginSettingTab {
 		this.containerEl.empty()
 		new Setting(this.containerEl)
 			.setName("Quick Rules")
-			.setDesc("The first N rulesets in your index file will be available in right click menu.")
+			.setDesc("The first N rulesets in your index file will be available in the right click menu.")
 			.addSlider(c => {
 				c.setValue(this.plugin.configs.quickRules)
 				c.setLimits(0, 10, 1)
@@ -241,7 +241,7 @@ class ORPSettings extends PluginSettingTab {
 			}) 
 		new Setting(this.containerEl)
 			.setName("Quick Rule Commands")
-			.setDesc("The first N rulesets in your index file will be available as Obsidian commands. If decreasing, the existing commands will not be removed until next reload (You can also manually re-enabled the plugin).")
+			.setDesc("The first N rulesets in your index file will be available as Obsidian commands. When changing this count or re-ordering rules, existing commands will not be removed until next reload (You can also manually re-enable the plugin).")
 			.addSlider(c => {
 				c.setValue(this.plugin.configs.quickCommands)
 				c.setLimits(0, 10, 1)
