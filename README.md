@@ -12,16 +12,15 @@ Regex Pipeline is an [Obsidian](https://obsidian.md/) plugin that allows users t
 
 > [Mr. Partan](www.lpartan.com) provided a nice [writeup](https://gist.github.com/No3371/f1750b178376f0659df6650ccaf57c12) about how to use the plugin, I recommend it if you are not familiar with regex or software usage. (September 2021, v1.0.9)
 
-First of all, enable the plugin, a file named index.txt should be created at `.obsidian/regex-rulesets/`. Due to how Obsidian protects your disks, you have to specify what ruleset files are there to be read, that's why we need a index file.
+First, enable the plugin, a file named index.txt should be created at `.obsidian/regex-rulesets/`. Due to how Obsidian protects your disks, you have to specify what ruleset files are there to be read, that's why we need a index file.
 
-Starting from 1.0.8, a in-app "add ruleset" funtionality is included. you can add rulesets through the + button in the menu, but you still have to go to `.obsidian/regex-rulesets/` and modify the files you want to edit/remove, mainly because any UI to change what's already on your disk is not safe, also because it's hard to provide good editing experience as common editors(ex: VSCode).
+Starting from version 1.0.8, you can add rulesets through the + button in the menu, but you still have to go to `.obsidian/regex-rulesets/` and modify the files you want to edit/remove, because it's hard to provide good editing experience that rivals common editors like VSCode.
 
-Starting from 1.1.0, you can apply rulesets through right-click menu. The available option count can be adjusted in settings.
+Starting from version 1.1.0, you can apply rulesets via the right-click menu. The available option count can be adjusted in the settings.
 
-Starting from 1.2.0, the quick rulesets (mentioned right above) can be invoked through Obsidian's command system after **Quick Commands** is toggled on in settings.
+Starting from version 1.2.0, quick rulesets (mentioned right above) can be invoked through Obsidian's command system when "Quick Commands" are set to above 0 in the settings.
 
 #### Writing Rulesets
-Now you can start editing your own rule sets.
 A ruleset contains one or more rule, the format looks like:
 ```
 :: Any "SEARCH" becomes "REPLACE"
@@ -92,18 +91,18 @@ Noted that `gm` flags are bascially neccessary for this plugin to be useful, you
 "SEARCH"->""
 :: Any "SEARCH" becomes ""
 ```
-In this case, whatever REPLACE is, the plugin treat it as "".
+Basically this is how we remove matched content.
 
 
 #### Indexing
-Rulesets must be saved in `.obsidian/regex-rulesets/`, and have to be included in the `index.txt`, one file per line. The order also decides the displaying order in-app.
+Rulesets must be saved in `.obsidian/regex-rulesets/`, and must be included in the `index.txt`, one file per line. The order of the lines determines the displaying order of the rulesets in the menu.
 
 #### Applying Rulesets
-Press the sidebar button of this plugin to show the rulesets menu, select your ruleset then it'll apply.
+Press the sidebar button of this plugin to show the rulesets menu, select your ruleset, and it'll be applied.
 
-The menu is a command so you can also bind it to a shortcut.
+The menu is available as a command so you can also bind it to a shortcut.
 
-**Note**: The plugin support applying rules to selection only, if anything is selected, only selection is modified!
+**Note**: The plugin support applying rules to selection, if anything is selected, only selection is modified!
 
 ## Examples
 
@@ -130,6 +129,13 @@ This ruleset help you transform selected content into a table of 2 columns! Ever
 ```
 
 Take a look in [samples folder](https://github.com/No3371/obsidian-regex-pipeline/tree/master/samples) for more examples, including a very complex one like the above gif!
+
+**Linebreak with br tag**
+This ruleset replace all newline with `<br>`.
+
+```
+"^(.+)\s+?\n(?=^.+)"->"$1<br>"
+```
 
 ## Recommendations
 - Markdownload (https://github.com/deathau/markdownload): for clipping webpages, don't forget to configure it to match your editing preferences.
