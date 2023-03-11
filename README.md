@@ -128,14 +128,14 @@ This ruleset help you transform selected content into a table of 2 columns! Ever
 "^(.+)$\n\n^(.+)$"->"| $1 | $2 |"
 ```
 
-Take a look in [samples folder](https://github.com/No3371/obsidian-regex-pipeline/tree/master/samples) for more examples, including a very complex one like the above gif!
-
 **Linebreak with br tag**
 This ruleset replace all newline with `<br>`.
 
 ```
 "^(.+)\s+?\n(?=^.+)"->"$1<br>"
 ```
+
+Take a look in [samples folder](https://github.com/No3371/obsidian-regex-pipeline/tree/master/samples) for more examples, including a very complex one like the above gif!
 
 ## Recommendations
 - Markdownload (https://github.com/deathau/markdownload): for clipping webpages, don't forget to configure it to match your editing preferences.
