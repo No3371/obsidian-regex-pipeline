@@ -1,4 +1,4 @@
-import { App, BaseComponent, ButtonComponent, Component, EventRef, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, TextAreaComponent, TextComponent, TFile, Vault, Command, Editor, Hotkey } from 'obsidian';
+import { App, BaseComponent, ButtonComponent, Component, EventRef, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, TextAreaComponent, TextComponent, TFile, Vault, Command, Editor, Hotkey, SliderComponent } from 'obsidian';
 
 export default class RegexPipeline extends Plugin {
 	rules: string[]
@@ -150,11 +150,7 @@ export default class RegexPipeline extends Plugin {
 		return true;
 	}
 
-	async applyRuleset (ruleset : string) {
-		if (!await this.app.vault.adapter.exists(ruleset)) {
-			new Notice(ruleset + " not found!");
-			return
-		}
+	async applyRulesetSearchAndReplace(ruleset : string){
 		let ruleParser = /^"(.+?)"([a-z]*?)(?:\r\n|\r|\n)?->(?:\r\n|\r|\n)?"(.*?)"([a-z]*?)(?:\r\n|\r|\n)?$/gmus;
 		let ruleText = await this.app.vault.adapter.read(ruleset);
 
@@ -186,7 +182,7 @@ export default class RegexPipeline extends Plugin {
 		{
 			if (ruleMatches == null) break;
 			this.log("\n" + ruleMatches[1] + "\n↓↓↓↓↓\n"+ ruleMatches[3]);
-
+			this.log("\n Search and Replace!");
 			let matchRule = ruleMatches[2].length == 0? new RegExp(ruleMatches[1], 'gm') : new RegExp(ruleMatches[1], ruleMatches[2]);
 			if (ruleMatches[4] == 'x') subject = subject.replace(matchRule, '');
 			else subject = subject.replace(matchRule, ruleMatches[3]);
@@ -200,7 +196,224 @@ export default class RegexPipeline extends Plugin {
 		activeMarkdownView.requestSave();
 		activeMarkdownView.editor.scrollTo(0, pos.top)
 		new Notice("Executed ruleset '" + ruleset + "' which contains " + count + " regex replacements!");
+	}
 
+	async applyRulesetSearchAndCopy(ruleset : string){
+		let ruleParser = /^"(.+?)"([a-z]*?)(?:\r\n|\r|\n)?->(?:\r\n|\r|\n)?"(.*?)"([a-z]*?)(?:\r\n|\r|\n)?$/gmus;
+		let ruleText = await this.app.vault.adapter.read(ruleset);
+
+		let activeMarkdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
+		if (activeMarkdownView == null)
+		{
+			new Notice("No active Markdown file!");
+			return;
+		}
+
+		let subject;
+		let selectionMode;
+		if (activeMarkdownView.editor.somethingSelected())
+		{
+			subject = activeMarkdownView.editor.getSelection();
+			selectionMode = true;
+		}
+		else
+		{
+			subject = activeMarkdownView.editor.getValue();
+		}
+
+		let pos = activeMarkdownView.editor.getScrollInfo()
+		this.log(pos.top)
+
+		let count = 0;
+		let ruleMatches;
+		let newClipboardText:string = "";
+		while (ruleMatches = ruleParser.exec(ruleText))
+		{
+			if (ruleMatches == null) break;
+			this.log("\n" + ruleMatches[1] + "\n↓↓↓↓↓\n"+ ruleMatches[3]);
+			this.log("\n Search and Copy!");
+			let matchRule = ruleMatches[2].length == 0? new RegExp(ruleMatches[1], 'gm') : new RegExp(ruleMatches[1], ruleMatches[2]);
+			let matchedOnes:Array<string> = subject.match(matchRule);
+			for(let idx in matchedOnes){
+				newClipboardText = newClipboardText + matchedOnes[idx]  +"\n";
+			}
+			count++;
+			newClipboardText = newClipboardText + "\n"+ "---" +"\n";
+		}
+		navigator.clipboard.writeText(newClipboardText);
+
+		new Notice("Executed ruleset '" + ruleset + "' which contains " + count + " regex is searched and copied!");
+	}
+
+	async applyRulesetSearchAndCopyAndReplace(ruleset : string){
+		let ruleParser = /^"(.+?)"([a-z]*?)(?:\r\n|\r|\n)?->(?:\r\n|\r|\n)?"(.*?)"([a-z]*?)(?:\r\n|\r|\n)?$/gmus;
+		let ruleText = await this.app.vault.adapter.read(ruleset);
+		let newClipboardText:string = "";
+		
+		let activeMarkdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
+		if (activeMarkdownView == null)
+		{
+			new Notice("No active Markdown file!");
+			return;
+		}
+
+		let subject;
+		let selectionMode;
+		if (activeMarkdownView.editor.somethingSelected())
+		{
+			subject = activeMarkdownView.editor.getSelection();
+			selectionMode = true;
+		}
+		else
+		{
+			subject = activeMarkdownView.editor.getValue();
+		}
+
+		let pos = activeMarkdownView.editor.getScrollInfo()
+		this.log(pos.top)
+
+		let count = 0;
+		let ruleMatches;
+		while (ruleMatches = ruleParser.exec(ruleText))
+		{
+			if (ruleMatches == null) break;
+			this.log("\n" + ruleMatches[1] + "\n↓↓↓↓↓\n"+ ruleMatches[3]);
+			this.log("\n Search, Copy and Replace!");
+			let matchRule = ruleMatches[2].length == 0? new RegExp(ruleMatches[1], 'gm') : new RegExp(ruleMatches[1], ruleMatches[2]);
+			//copy 
+			let matchedOnes:Array<string> = subject.match(matchRule);
+			for(let idx in matchedOnes){
+				newClipboardText = newClipboardText + matchedOnes[idx] +"\n";
+			}
+			newClipboardText = newClipboardText + "\n"+ "---" +"\n";
+			//replace
+			if (ruleMatches[4] == 'x') subject = subject.replace(matchRule, '');
+			else subject = subject.replace(matchRule, ruleMatches[3]);
+			count++;
+		}
+		if (selectionMode)
+			activeMarkdownView.editor.replaceSelection(subject);
+		else
+			activeMarkdownView.editor.setValue(subject);
+		
+		navigator.clipboard.writeText(newClipboardText);
+
+		activeMarkdownView.requestSave();
+		activeMarkdownView.editor.scrollTo(0, pos.top)
+		new Notice("Executed ruleset '" + ruleset + "' which contains " + count + " regex is searched, copied and replaced!");
+	}
+
+	//manual search and copy
+	applyManualSearchAndCopy(regExpString : string){
+		let newClipboardText:string = "";
+		
+		let activeMarkdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
+		if (activeMarkdownView == null)
+		{
+			new Notice("No active Markdown file!");
+			return;
+		}
+
+		let subject;
+		let selectionMode;
+		if (activeMarkdownView.editor.somethingSelected())
+		{
+			subject = activeMarkdownView.editor.getSelection();
+			selectionMode = true;
+		}
+		else
+		{
+			subject = activeMarkdownView.editor.getValue();
+		}
+
+		let pos = activeMarkdownView.editor.getScrollInfo()
+		this.log(pos.top)
+
+		if(regExpString.length>0){
+			this.log("\n" + regExpString + "\n↓↓↓↓↓\n");
+			this.log("\n Search And Copy!");
+			let matchRule = new RegExp(regExpString, 'gm');
+			//copy 
+			let matchedOnes:Array<string> = subject.match(matchRule);
+			for(let idx in matchedOnes){
+				newClipboardText = newClipboardText + matchedOnes[idx] +"\n";
+			}
+			newClipboardText = newClipboardText + "\n"+ "---" +"\n";
+
+
+		navigator.clipboard.writeText(newClipboardText);
+		activeMarkdownView.requestSave();
+		activeMarkdownView.editor.scrollTo(0, pos.top)
+		new Notice("Executed " + regExpString + ", regex is searched and copied!");
+		}
+	}
+
+	async applyManualSearchAndReplace(regExpString : string, replacementString : string){
+		
+		let activeMarkdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
+		if (activeMarkdownView == null)
+		{
+			new Notice("No active Markdown file!");
+			return;
+		}
+
+		let subject;
+		let selectionMode;
+		if (activeMarkdownView.editor.somethingSelected())
+		{
+			subject = activeMarkdownView.editor.getSelection();
+			selectionMode = true;
+		}
+		else
+		{
+			subject = activeMarkdownView.editor.getValue();
+		}
+
+		let pos = activeMarkdownView.editor.getScrollInfo()
+		this.log(pos.top)
+
+		if(regExpString.length>0){
+			this.log("\n" + regExpString + "\n↓↓↓↓↓\n"+ replacementString);
+			this.log("\n Search, Copy and Replace!");
+			let matchRule = new RegExp(regExpString, 'gm');
+			//replace
+			subject = subject.replace(matchRule, replacementString)
+		
+		if (selectionMode)
+			activeMarkdownView.editor.replaceSelection(subject);
+		else
+			activeMarkdownView.editor.setValue(subject);
+		
+		activeMarkdownView.requestSave();
+		activeMarkdownView.editor.scrollTo(0, pos.top)
+		new Notice("Executed RegExp: " + regExpString +  ", regex is searched and replaced!");
+		}
+	}
+
+	async applyRuleset (ruleset : string, mode: number = 0) {
+		if (!await this.app.vault.adapter.exists(ruleset)) {
+			new Notice(ruleset + " not found!");
+			return
+		}
+		switch (mode){
+			case 0:{
+				this.applyRulesetSearchAndReplace(ruleset);
+				break;
+			}
+			case 1:{
+				this.applyRulesetSearchAndCopy(ruleset);
+				break;
+			}
+			case 2:{
+				this.applyRulesetSearchAndCopyAndReplace(ruleset);
+				break;
+			}
+			default:{
+				this.applyRulesetSearchAndReplace(ruleset);
+			}
+
+
+		}
 	}
 }
 
@@ -274,6 +487,9 @@ class ORPSettings extends PluginSettingTab {
 
 class ApplyRuleSetMenu extends Modal {
 	plugin: RegexPipeline;
+	modeValue:number;
+	manualRegExp:string;
+	manualReplaceText:string;
 	constructor(app: App, plugin: RegexPipeline) {
 		super(app);
 		this.plugin = plugin;
@@ -288,6 +504,59 @@ class ApplyRuleSetMenu extends Modal {
 			el.style.setProperty("margin", "12 0 8");
 		});
 		this.titleEl.createEl("h1", null, el => { el.style.setProperty("flex-grow", "1") });
+		
+		new Setting(this.modalEl)
+		.setName("Select RuleSet Processing Mode (0 Replace ; 1 CopyResult ; 2 Copy+Replace)")
+		.addSlider((modeSliderComponent:SliderComponent) => {
+			modeSliderComponent.setLimits(0,2,1);
+			modeSliderComponent.setValue(0);
+			modeSliderComponent.setDynamicTooltip();
+			modeSliderComponent.onChange((value) => {
+				this.modeValue = value;
+				modeSliderComponent.showTooltip();
+			});
+		});
+
+		let manualRegExpSetting = new Setting(this.modalEl);
+		manualRegExpSetting
+			.setName("Manual Reg Exp:")
+			.addText((regExpInputText:TextComponent) => {
+				regExpInputText.onChange((value) => {
+					this.manualRegExp = value
+				})
+				regExpInputText.inputEl.className ="manual-input";
+			})
+			.addButton((searchAndCopyButton:ButtonComponent)=>{
+				searchAndCopyButton
+					.setButtonText("Search & Copy")
+					.onClick(async (evt) => {
+						this.plugin.applyManualSearchAndCopy(this.manualRegExp);
+						this.close();
+				});
+				searchAndCopyButton.buttonEl.className = "apply-ruleset-button";
+			});
+		manualRegExpSetting.infoEl.className = "manual-input-info";
+
+		let manualRegRepSetting = new Setting(this.modalEl);
+		manualRegRepSetting
+			.setName("Manual Replacement:")
+			.addText((replacementText:TextComponent) => {
+				replacementText.onChange((value) => {
+					this.manualReplaceText = value
+				})
+				replacementText.inputEl.className ="manual-input";
+			})
+			.addButton((searchAndReplaceButton:ButtonComponent)=>{
+				searchAndReplaceButton
+					.setButtonText("Search & Replace")
+					.onClick(async (evt) => {
+						this.plugin.applyManualSearchAndReplace(this.manualRegExp,this.manualReplaceText);
+						this.close();
+				});
+				searchAndReplaceButton.buttonEl.className = "apply-ruleset-button";
+			});
+		manualRegRepSetting.infoEl.className ="manual-input-info";
+
 		var reloadButton = new ButtonComponent(this.titleEl)
 			.setButtonText("RELOAD")
 			.onClick(async (evt) => {
@@ -312,7 +581,7 @@ class ApplyRuleSetMenu extends Modal {
 			var ruleset = new ButtonComponent(this.contentEl)
 				.setButtonText(this.plugin.rules[i])
 				.onClick(async (evt) => {
-					this.plugin.applyRuleset(this.plugin.pathToRulesets + "/" + this.plugin.rules[i])
+					this.plugin.applyRuleset(this.plugin.pathToRulesets + "/" + this.plugin.rules[i],this.modeValue)
 					this.close();
 				});
 			ruleset.buttonEl.className = "apply-ruleset-button";
