@@ -497,25 +497,44 @@ class ApplyRuleSetMenu extends Modal {
 		this.modalEl.style.setProperty("max-height", "60vh");
 		this.modalEl.style.setProperty("padding", "2rem");
 		this.titleEl.createEl("h1", null, el => {
-			el.innerHTML = this.plugin.pathToRulesets + "/...";
+			el.innerHTML = "Regexp Tool Setting";
 			el.style.setProperty("display", "inline-block");
 			el.style.setProperty("width", "92%");
 			el.style.setProperty("max-width", "480px");
 			el.style.setProperty("margin", "12 0 8");
 		});
 		this.titleEl.createEl("h1", null, el => { el.style.setProperty("flex-grow", "1") });
-		
+
+		new Setting(this.contentEl)
+			.setName("Stored Rule Sets")
+			.settingEl.style.setProperty("width","100%");
+		let reloadStoredRulesetsSetting = new Setting(this.contentEl);
+		reloadStoredRulesetsSetting
+			.setName("Rule Sets Storage Path: " + this.plugin.pathToRulesets + "/...")
+			.settingEl.style.setProperty("width","100%");
+		reloadStoredRulesetsSetting.addButton((reloadStoredRulesetsBtn:ButtonComponent) => {
+			reloadStoredRulesetsBtn.setButtonText("RELOAD")
+				.onClick(async (evt) => {
+					await this.plugin.reloadRulesets();
+					this.onClose();
+					this.onOpen();
+				});
+			reloadStoredRulesetsBtn.buttonEl.style.setProperty("display", "inline-block")
+			reloadStoredRulesetsBtn.buttonEl.style.setProperty("bottom", "8px")
+			reloadStoredRulesetsBtn.buttonEl.style.setProperty("margin", "auto")
+		})
+
 		new Setting(this.modalEl)
-		.setName("Select RuleSet Processing Mode (0 Replace ; 1 CopyResult ; 2 Copy+Replace)")
-		.addSlider((modeSliderComponent:SliderComponent) => {
-			modeSliderComponent.setLimits(0,2,1);
-			modeSliderComponent.setValue(0);
-			modeSliderComponent.setDynamicTooltip();
-			modeSliderComponent.onChange((value) => {
-				this.modeValue = value;
-				modeSliderComponent.showTooltip();
+			.setName("Select Mode for Stored Rule Sets Above (0 Replace ; 1 CopyResult ; 2 Copy+Replace)")
+			.addSlider((modeSliderComponent:SliderComponent) => {
+				modeSliderComponent.setLimits(0,2,1);
+				modeSliderComponent.setValue(0);
+				modeSliderComponent.setDynamicTooltip();
+				modeSliderComponent.onChange((value) => {
+					this.modeValue = value;
+					modeSliderComponent.showTooltip();
+				});
 			});
-		});
 
 		let manualRegExpSetting = new Setting(this.modalEl);
 		manualRegExpSetting
@@ -556,17 +575,6 @@ class ApplyRuleSetMenu extends Modal {
 				searchAndReplaceButton.buttonEl.className = "apply-ruleset-button";
 			});
 		manualRegRepSetting.infoEl.className ="manual-input-info";
-
-		var reloadButton = new ButtonComponent(this.titleEl)
-			.setButtonText("RELOAD")
-			.onClick(async (evt) => {
-				await this.plugin.reloadRulesets();
-				this.onClose();
-				this.onOpen();
-			});
-		reloadButton.buttonEl.style.setProperty("display", "inline-block")
-		reloadButton.buttonEl.style.setProperty("bottom", "8px")
-		reloadButton.buttonEl.style.setProperty("margin", "auto")
 	}
 
 	onOpen() {
