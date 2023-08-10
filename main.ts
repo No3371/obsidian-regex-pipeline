@@ -296,6 +296,7 @@ export default class RegexPipeline extends Plugin {
 		else
 			activeMarkdownView.editor.setValue(subject);
 		
+		navigator.clipboard.writeText("");
 		navigator.clipboard.writeText(newClipboardText);
 
 		activeMarkdownView.requestSave();
@@ -505,25 +506,6 @@ class ApplyRuleSetMenu extends Modal {
 		});
 		this.titleEl.createEl("h1", null, el => { el.style.setProperty("flex-grow", "1") });
 
-		new Setting(this.contentEl)
-			.setName("Stored Rule Sets")
-			.settingEl.style.setProperty("width","100%");
-		let reloadStoredRulesetsSetting = new Setting(this.contentEl);
-		reloadStoredRulesetsSetting
-			.setName("Rule Sets Storage Path: " + this.plugin.pathToRulesets + "/...")
-			.settingEl.style.setProperty("width","100%");
-		reloadStoredRulesetsSetting.addButton((reloadStoredRulesetsBtn:ButtonComponent) => {
-			reloadStoredRulesetsBtn.setButtonText("RELOAD")
-				.onClick(async (evt) => {
-					await this.plugin.reloadRulesets();
-					this.onClose();
-					this.onOpen();
-				});
-			reloadStoredRulesetsBtn.buttonEl.style.setProperty("display", "inline-block")
-			reloadStoredRulesetsBtn.buttonEl.style.setProperty("bottom", "8px")
-			reloadStoredRulesetsBtn.buttonEl.style.setProperty("margin", "auto")
-		})
-
 		new Setting(this.modalEl)
 			.setName("Select Mode for Stored Rule Sets Above (0 Replace ; 1 CopyResult ; 2 Copy+Replace)")
 			.addSlider((modeSliderComponent:SliderComponent) => {
@@ -578,6 +560,24 @@ class ApplyRuleSetMenu extends Modal {
 	}
 
 	onOpen() {
+		new Setting(this.contentEl)
+			.setName("Stored Rule Sets")
+			.settingEl.style.setProperty("width","100%");
+		let reloadStoredRulesetsSetting = new Setting(this.contentEl);
+		reloadStoredRulesetsSetting
+			.setName("Rule Sets Storage Path: " + this.plugin.pathToRulesets + "/...")
+			.settingEl.style.setProperty("width","100%");
+		reloadStoredRulesetsSetting.addButton((reloadStoredRulesetsBtn:ButtonComponent) => {
+			reloadStoredRulesetsBtn.setButtonText("RELOAD")
+				.onClick(async (evt) => {
+					await this.plugin.reloadRulesets();
+					this.onClose();
+					this.onOpen();
+				});
+			reloadStoredRulesetsBtn.buttonEl.style.setProperty("display", "inline-block")
+			reloadStoredRulesetsBtn.buttonEl.style.setProperty("bottom", "8px")
+			reloadStoredRulesetsBtn.buttonEl.style.setProperty("margin", "auto")
+		})
 		for (let i = 0; i < this.plugin.rules.length; i++)
 		{
 			// new Setting(contentEl)
@@ -594,7 +594,6 @@ class ApplyRuleSetMenu extends Modal {
 				});
 			ruleset.buttonEl.className = "apply-ruleset-button";
 		}
-		this.titleEl.getElementsByTagName("h1")[0].innerHTML = this.plugin.pathToRulesets + "/...";
 		var addButton = new ButtonComponent(this.contentEl)
 			.setButtonText("+")
 			.onClick(async (evt) => {
